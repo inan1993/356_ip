@@ -14,8 +14,7 @@ int client(const char * addr, uint16_t port);
 
 int main(int argc, char ** argv){
 	char[] filename = argv[0];
-}
-/*	if (argc < 3) {
+	if (argc < 3) {
 		printf("Command should be: myprog s <port> or myprog c <port> <address>\n");
 		return 1;
 	}
@@ -38,7 +37,7 @@ int main(int argc, char ** argv){
 	}
 	return 0;
 }
-*/
+
 int client(const char * addr, uint16_t port)
 {
 	int sock;
