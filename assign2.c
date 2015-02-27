@@ -29,16 +29,16 @@ struct interface{
 }interface;
 
 void printParser(struct nodeInfo *nodeInformation, struct interface* listStart){
-	printf("Local Node address: %s \n", nodeInformation -> nodeAddr);
-	printf("Local Node Port: %i \n\n", nodeInformation -> nodePort);
+	printf("Local Node address: WRONG!!!!!!     %s \n", nodeInformation->nodeAddr);
+	printf("Local Node Port: %i \n\n", nodeInformation->nodePort);
 	struct interface * currInterface = listStart;
 	while(currInterface != NULL){
-		printf("Interface ID: %i \n", currInterface -> interId);
-		printf("Remote Node addr: %s \n", currInterface -> rnAddr);
-		printf("Remote Node Port: %i \n", currInterface -> rnPort);
-		printf("Interface vip: %s \n", currInterface -> vipSource);
-		printf("Interface Destination vip: %s\n\n ", currInterface -> vipDest);
-		currInterface = currInterface -> next;
+		printf("Interface ID: %i \n", currInterface->interId);
+		printf("Remote Node addr: %s \n", currInterface->rnAddr);
+		printf("Remote Node Port: %i \n", currInterface->rnPort);
+		printf("Interface Local vip: %s \n", currInterface->vipSource);
+		printf("Interface Destination vip: %s\n\n", currInterface->vipDest);
+		currInterface = currInterface->next;
 	}
 }
 
@@ -62,19 +62,19 @@ int main(int argc, char ** argv){
 		if(feof(fd))
 			break;
 		printf("WORD = %s\n",word);
-		if(word[0] == '\n'){
-			printf("new!!");
-		}
+		// if(word[0] == '\n'){
+		// 	printf("new!!");
+		// }
 
 		//	Initialize local node  - First Line
 		if(lineCounter == 0){
-			nodeInformation->nodeAddr = strtok(word, ":");	
+			nodeInformation->nodeAddr = strtok(word, ":");				// Getting wrong address
 			printf("nodeaddr %s\n",nodeInformation->nodeAddr);	
 			unsigned long address = inet_addr(word);
 					// printf("addr = %lu", address);
 			int port = atoi(strtok(NULL, ":"));					// NULL ???
 			nodeInformation->nodePort = port;
-					// printf("port = %i\n", port);
+					printf("port = %i\n", port);
 			lineCounter ++;	
 		}
 
@@ -124,6 +124,92 @@ int main(int argc, char ** argv){
 	printf("-----END-----\n\n");
 	currInt->prev->next = NULL;
 	printParser(nodeInformation,interfaceList);
+
+
+// Thread for receiving
+
+
+
+// Thread for sending
+}
+
+int listening(const char * addr, uint16_t port)
+{
+	int sock;
+	struct sockaddr_in my_addr;
+	if ((sock = socket(AF_INET, SOCK_DGRAM/* use UDP */, 0)) < 0) {
+		perror("Create socket error:");
+		return 1;
+	}
+
+	my_addr.sin_family = AF_INET;
+	my_addr.sin_addr.s_addr = htonl(addr);			// check if correct data type *addr ??
+	my_addr.sin_port = htons(port);
+
+	if (bind(sock, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+		perror("Binding socket to local address error:");
+		return 1;
+	}
+
+	char* buffer = malloc(sizeof(char)*1400);
+
+//Code from the internet
+	struct sockaddr_storage src_addr;
+	socklen_t src_addr_len=sizeof(src_addr);
+
+	ssize_t count=recvfrom(sock,buffer,sizeof(buffer),0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
+	if (count==-1) {
+		die("%s",strerror(errno));
+	} else if (count==sizeof(buffer)) {
+		warn("datagram too large for buffer: truncated");
+	} else {
+		handle_datagram(buffer,count);
+	}
+
+
+
+
+
+
+	char msg[MAX_MSG_LENGTH], reply[MAX_MSG_LENGTH*3];
+	memset(reply, 0, sizeof(reply));
+	if ((sock = socket(AF_INET, SOCK_STREAM/* use tcp */, 0)) < 0) {
+	perror("Create socket error:");
+	return 1;
+}
+
+printf("Socket created\n");
+server_addr.sin_addr.s_addr = inet_addr(addr);
+server_addr.sin_family = AF_INET;
+server_addr.sin_port = htons(port);
+
+if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+	perror("Connect error:");
+	return 1;
+}
+
+printf("Connected to server %s:%d\n", addr, port);
+
+int recv_len = 0;
+while (1) {
+	fflush(stdin);
+	printf("Enter message: \n");
+	gets(msg);
+	if (send(sock, msg, MAX_MSG_LENGTH, 0) < 0) {
+		perror("Send error:");
+		return 1;
+	}
+	recv_len = read(sock, reply, MAX_MSG_LENGTH*3);
+	if (recv_len < 0) {
+		perror("Recv error:");
+		return 1;
+	}
+	reply[recv_len] = 0;
+	printf("Server reply:\n %s\n", reply,msg);
+	memset(reply, 0, sizeof(reply));
+}
+close(sock);
+return 0;
 }
 
 
