@@ -12,9 +12,10 @@ int client(const char * addr, uint16_t port);
 #define MAX_MSG_LENGTH (512)
 #define MAX_BACK_LOG (5)
 
-int main(int argc, char ** argv)
-{
-	if (argc < 3) {
+int main(int argc, char ** argv){
+	char[] filename = argv[0];
+}
+/*	if (argc < 3) {
 		printf("Command should be: myprog s <port> or myprog c <port> <address>\n");
 		return 1;
 	}
@@ -37,7 +38,7 @@ int main(int argc, char ** argv)
 	}
 	return 0;
 }
-
+*/
 int client(const char * addr, uint16_t port)
 {
 	int sock;
