@@ -68,7 +68,9 @@ int main(int argc, char ** argv){
 
 		//	Initialize local node  - First Line
 		if(lineCounter == 0){
-			nodeInformation->nodeAddr = strtok(word, ":");	
+			char* temp = (char*)malloc(sizeof(char)*100);
+			strcpy(temp,strtok(word, ":"));
+			nodeInformation->nodeAddr = temp;	
 			printf("nodeaddr %s\n",nodeInformation->nodeAddr);	
 			unsigned long address = inet_addr(word);
 					// printf("addr = %lu", address);
