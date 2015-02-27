@@ -143,6 +143,7 @@ int listening(const char * addr, uint16_t port)
 		perror("Create socket error:");
 		return 1;
 	}
+	printf("Socket created\n");
 
 	my_addr.sin_family = AF_INET;
 	my_addr.sin_addr.s_addr = htonl(addr);			// check if correct data type *addr ??
@@ -165,54 +166,31 @@ int listening(const char * addr, uint16_t port)
 	} else if (count==sizeof(buffer)) {
 		warn("datagram too large for buffer: truncated");
 	} else {
-		handle_datagram(buffer,count);
+		handle_datagram(buffer,count);			// handle method
 	}
-
-
-
-
-
-
-	char msg[MAX_MSG_LENGTH], reply[MAX_MSG_LENGTH*3];
-	memset(reply, 0, sizeof(reply));
-	if ((sock = socket(AF_INET, SOCK_STREAM/* use tcp */, 0)) < 0) {
-	perror("Create socket error:");
-	return 1;
 }
 
-printf("Socket created\n");
-server_addr.sin_addr.s_addr = inet_addr(addr);
-server_addr.sin_family = AF_INET;
-server_addr.sin_port = htons(port);
 
-if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-	perror("Connect error:");
-	return 1;
-}
-
-printf("Connected to server %s:%d\n", addr, port);
-
-int recv_len = 0;
-while (1) {
-	fflush(stdin);
-	printf("Enter message: \n");
-	gets(msg);
-	if (send(sock, msg, MAX_MSG_LENGTH, 0) < 0) {
-		perror("Send error:");
-		return 1;
-	}
-	recv_len = read(sock, reply, MAX_MSG_LENGTH*3);
-	if (recv_len < 0) {
-		perror("Recv error:");
-		return 1;
-	}
-	reply[recv_len] = 0;
-	printf("Server reply:\n %s\n", reply,msg);
-	memset(reply, 0, sizeof(reply));
-}
-close(sock);
-return 0;
-}
+// int recv_len = 0;
+// while (1) {
+// 	fflush(stdin);
+// 	printf("Enter message: \n");
+// 	gets(msg);
+// 	if (send(sock, msg, MAX_MSG_LENGTH, 0) < 0) {
+// 		perror("Send error:");
+// 		return 1;
+// 	}
+// 	recv_len = read(sock, reply, MAX_MSG_LENGTH*3);
+// 	if (recv_len < 0) {
+// 		perror("Recv error:");
+// 		return 1;
+// 	}
+// 	reply[recv_len] = 0;
+// 	printf("Server reply:\n %s\n", reply,msg);
+// 	memset(reply, 0, sizeof(reply));
+// }
+// close(sock);
+// return 0;
 
 
 
