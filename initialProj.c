@@ -98,9 +98,8 @@ int server(uint16_t port)
 
  	bind (sock, (struct sockaddr *) &server_addr, sizeof(server_addr));
 	while(listen(sock, 10) != 0){
-                        printf("Listen error");
-
-                }
+		printf("Listen error");
+	}
 
 	while(1){
 		receive = accept(sock, NULL,NULL);
