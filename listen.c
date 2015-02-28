@@ -35,12 +35,14 @@ int listening(char * addr, uint16_t port){
 
 	char* buf [1400];
 	// (char*) malloc(sizeof(long) * 100);
-	printf("size - %i\n", sizeof buf);
+	printf("size - %lu\n",sizeof(buf));
+
 //Code from the internet
 	struct sockaddr_storage src_addr;
 	socklen_t src_addr_len=sizeof(src_addr);
 	while(1){
 		ssize_t count=recvfrom(sock,buf,sizeof(buf),0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
+		printf("New message:\n");
 		if (count==-1) {
 			printf("ERORR %s",strerror(errno));
 		} else if (count==sizeof(buf)) {
@@ -60,25 +62,3 @@ int main(int argc, char ** argv){
 	uint16_t port = 1700;
 	int c = listening(str, port);
 }
-
-
-// int recv_len = 0;
-// while (1) {
-// 	fflush(stdin);
-// 	printf("Enter message: \n");
-// 	gets(msg);
-// 	if (send(sock, msg, MAX_MSG_LENGTH, 0) < 0) {
-// 		perror("Send error:");
-// 		return 1;
-// 	}
-// 	recv_len = read(sock, reply, MAX_MSG_LENGTH*3);
-// 	if (recv_len < 0) {
-// 		perror("Recv error:");
-// 		return 1;
-// 	}
-// 	reply[recv_len] = 0;
-// 	printf("Server reply:\n %s\n", reply,msg);
-// 	memset(reply, 0, sizeof(reply));
-// }
-// close(sock);
-// return 0;

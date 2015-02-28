@@ -9,7 +9,7 @@
 int server(uint16_t port);
 int client(const char * addr, uint16_t port);
 
-#define MAX_MSG_LENGTH (10)
+#define MAX_MSG_LENGTH (1400)
 #define MAX_BACK_LOG (5)
 
 int main(int argc, char ** argv){
