@@ -7,61 +7,136 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
-#include <netinet/in.h>
+#include <netinet/ip.h>
+// #include <net/ip.h>
+#include <inttypes.h>
+#define PACKET_LEN 1400					//????
 
-typedef struct ip_packet
+
+
+typedef struct ip_Packet
 {	
-	ip_t ip_header;
+	struct ip ip_header;
 	char* payload;
 }ip_packet;
 
 
-void ipHeader(char* payload){
 
-	ip_packet ip;
-	ip.ip_header.ip_len = 12;
+/************************************************************
+ Checksum for Internet Protocol family headers (C Version)
+ From ping examples in W.Richard Stevens "UNIX NETWORK PROGRAMMING" book.
+************************************************************/
+
+int ip_sum(char* packet, int n) {
+  uint16_t *p = (uint16_t*)packet;
+  uint16_t answer;
+  long sum = 0;
+  uint16_t odd_byte = 0;
+
+  while (n > 1) {
+    sum += *p++;
+    n -= 2;
+  }
+
+  /* mop up an odd byte, if necessary */
+  if (n == 1) {
+    *(uint8_t*)(&odd_byte) = *(uint8_t*)p;
+    sum += odd_byte;
+  }
+
+  sum = (sum >> 16) + (sum & 0xffff); /* add hi 16 to low 16 */
+  sum += (sum >> 16);           /* add carry */
+  answer = ~sum;                /* ones-complement, truncate*/
+  return answer;
+}
+
+
+
+void ipHeader(char* payload, char* src, char* dest){
+
+	ip_packet ip;						// creating ip Headers
+	ip.ip_header.ip_hl 		= (unsigned int)sizeof(struct ip);				// Stores the last 4 bits only		// ACTUAL SIZE = 20bytes
+	ip.ip_header.ip_v 		= 4;		// IPv4
+	ip.ip_header.ip_tos 	= 16;		// Type of Service ????
+	ip.ip_header.ip_len 	=sizeof(struct ip)+sizeof(payload);
+	ip.ip_header.id 		=0;												//EXTRA CREDIT
+	ip.ip_header.ip_off 	=0;												//EXTRA CREDIT
+// #define	IP_RF 0x8000			/* reserved fragment flag */
+// #define	IP_DF 0x4000			/* dont fragment flag */
+// #define	IP_MF 0x2000			/* more fragments flag */
+// #define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
+	ip.ip_header.ip_p 		= 17; 		// UDP
+	ip.ip_header.ip_ttl		= 16;		// Max Time to live = Infinity
+	ip.ip_header.ip_sum		= ip_sum(payload, (sizeof(struct ip)));
+	inet_aton(src, &ip.ip_header.ip_src);
+	inet_aton(dest, &ip.ip_header.ip_dst);
+	
 	ip.payload = payload;
 
-	printf("Length = %lu\n Payload = %s",ip.ip_header.ip_len,ip.payload);
+	printf("IP headr length\t\t- %i\n", ip.ip_header.ip_hl);
+	printf("IP version\t\t- %i\n", ip.ip_header.ip_v);
+	printf("IP tos\t\t\t- %i\n", ip.ip_header.ip_tos);
+	printf("IP TTL\t\t\t- %i\n", ip.ip_header.ip_ttl);
+	printf("IP length of packet\t- %i\n", ip.ip_header.ip_len);
+	printf("IP protocol\t\t- %i\n\n", ip.ip_header.ip_p);
+	printf("IP checksum\t\t- %i\n\n", ip.ip_header.ip_sum);
+
+	printf("IP src\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_src));
+	printf("IP dest\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_dst));
+	
+
+
+	printf("LengthOfPayload = %lu\nPayload = %s\n",sizeof(struct ip),ip.payload);
 	return;
 }
 
 
 int main(int argc, char** argv){
 
-	char* payload = "WOLFRAM";
-	ipHeader(payload);
-
+	char* payload = "WOLFRAMs";
+	char* dest = "123.23.12.111";
+	char* src = "123.23.12.111";
+	ipHeader(payload, src, dest);
 }
 
-//  typedef struct ip
-// 00081 {
-// 00082 #if __BYTE_ORDER__ == __LITTLE_ENDIAN__
-// 00083         uint8_t ip_hdr_len:4;   //!< The header length.
-// 00084         uint8_t ip_version:4;   //!< The IP version.
-// 00085 #else
-// 00086         uint8_t ip_version:4;   //!< The IP version.
-// 00087         uint8_t ip_hdr_len:4;   //!< The IP header length.
-// 00088 #endif
-// 00089         //! Type of Service.
-// 00090         uint8_t ip_tos;
-// 00091         //! IP packet length (both data and header).
-// 00092         uint16_t ip_len;
-// 00093 
-// 00094         //! Identification.
-// 00095         uint16_t ip_id;
-// 00096         //! Fragment offset.
-// 00097         uint16_t ip_off;
-// 00098 
-// 00099         //! Time To Live.
-// 00100         uint8_t ip_ttl;
-// 00101         //! The type of the upper-level protocol.
-// 00102         uint8_t ip_proto;
-// 00103         //! IP header checksum.
-// 00104         uint16_t ip_chk;
-// 00105 
-// 00106         //! IP source address (in network format).
-// 00107         uint32_t ip_src;
-// 00108         //! IP destination address (in network format).
-// 00109         uint32_t ip_dst;
-// 00110 } __attribute__ ((packed)) ip_t;
+/*
+ * Structure of an internet header, naked of options.
+ */
+// struct ip
+//   {
+// #if __BYTE_ORDER == __LITTLE_ENDIAN
+//     unsigned int ip_hl:4;		/* header length */
+//     unsigned int ip_v:4;		/* version */
+// #endif
+// #if __BYTE_ORDER == __BIG_ENDIAN
+//     unsigned int ip_v:4;		/* version */
+//     unsigned int ip_hl:4;		/* header length */
+// #endif
+//     u_int8_t ip_tos;			/* type of service */
+//     u_short ip_len;			/* total length */
+//     u_short ip_id;			/* identification */
+//     u_short ip_off;			/* fragment offset field */
+// #define	IP_RF 0x8000			/* reserved fragment flag */
+// #define	IP_DF 0x4000			/* dont fragment flag */
+// #define	IP_MF 0x2000			/* more fragments flag */
+// #define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
+//     u_int8_t ip_ttl;			/* time to live */
+//     u_int8_t ip_p;			/* protocol */
+//     u_short ip_sum;			/* checksum */
+//     struct in_addr ip_src, ip_dst;	/* source and dest address */
+//   };
+
+
+  // struct in_addr {
+  //      in_addr_t s_addr;
+  //  };
+
+ // in_addr_t Equivalent to the type uint32_t as described in <inttypes.h>
+
+//  The function inet_ntoa() converts a network address in a struct in_addr to a dots-and-numbers format string. 
+// The "n" in "ntoa" stands for network, and the "a" stands for ASCII for historical reasons 
+// (so it's "Network To ASCII"—the "toa" suffix has an analogous friend in the C library called atoi() which converts an ASCII string to an integer.)
+
+// The function inet_aton() is the opposite, converting from a dots-and-numbers string into a in_addr_t 
+// (which is the type of the field s_addr in your struct in_addr.)
+
