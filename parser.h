@@ -27,6 +27,10 @@ struct interface{
 	struct interface* next;
 	struct interface* prev;
 }interface;
+struct returnInfo{
+	struct nodeInfo* mainNode ;
+	struct interface* interfaceList;
+} returnInfo;
 
 void printParser(struct nodeInfo *nodeInformation, struct interface* listStart){
 	printf("Local Node address: %s \n", nodeInformation -> nodeAddr);
@@ -42,7 +46,7 @@ void printParser(struct nodeInfo *nodeInformation, struct interface* listStart){
 	}
 }
 
-int parser(int argc, char ** argv){
+struct returnInfo* parser(int argc, char ** argv){
 	struct nodeInfo* nodeInformation =(struct nodeInfo*) malloc(sizeof(nodeInfo));
 
 	struct interface* interfaceList = (struct interface*) malloc(sizeof(interface)); 
@@ -125,7 +129,11 @@ int parser(int argc, char ** argv){
 	}	
 	printf("-----END-----\n\n");
 	currInt->prev->next = NULL;
+	struct returnInfo* returnValue = (struct returnInfo*) malloc(sizeof(struct returnInfo));
+	returnValue->mainNode = nodeInformation;
+	returnValue -> interfaceList = interfaceList;
 	printParser(nodeInformation,interfaceList);
+	return returnValue;
 }
 
 
