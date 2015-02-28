@@ -9,6 +9,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include "parser.h"
+#include "ripTable.h"
 //#include "listen.h"
 //uint16_t command;
 //uint16_t num_entries;
@@ -17,23 +18,21 @@
 //uint32_t address;
 //} entries[num_entries];
 
-struct ripEntry{
-	char destVIP[30];
-	struct interface nextHop;
-	int cost;
-	time_t updateTime;
-	struct ripEntry* next;
-	struct ripEntry* prev;
-}ripEntry;
-
-struct ripTable{
-	struct ripEntry* ripEntries;
-	struct nodeInfo mainNode; 
-}ripTable;
 struct threadInit{
 	struct nodeInfo mainNode;
 	
 };
+void printTable(struct ripTable* table){
+	struct ripEntry* entries = table -> ripEntries;
+	struct nodeInfo* mainNode = table -> mainNode;
+	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
+	struct ripEntry* currEntry = table ->ripEntries;
+	while(currEntry != NULL){
+		printf("Destination: %s NextHopAddr: %s:%d \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort);
+		printf("Cost %d\n", currEntry -> cost);
+		currEntry = currEntry -> next;
+	}  
+}
 void* reader(void* data){
 	struct returnInfo* allInfo = (struct returnInfo*) data;
 	struct nodeInfo* mainNode = allInfo -> mainNode;
@@ -64,6 +63,9 @@ char* getThirdArg(char* string, char delimiter){
 }
 int main(int argc, char ** argv){
 	struct returnInfo* returnData = parser(argc, argv);
+	struct ripTable* mainTable =(struct ripTable*) malloc(sizeof(ripTable));
+	initializeTable(returnData -> mainNode, returnData -> interfaceList, mainTable);
+	printTable(mainTable);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
