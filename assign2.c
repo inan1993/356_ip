@@ -22,13 +22,12 @@ struct ripEntry{
 	struct interface nextHop;
 	int cost;
 	time_t updateTime;
-	bool upDown;
 	struct ripEntry* next;
 	struct ripEntry* prev;
 }ripEntry;
 
 struct ripTable{
-	struct interface interfaceList;
+	struct ripEntry* ripEntries;
 	struct nodeInfo mainNode; 
 }ripTable;
 struct threadInit{
@@ -49,6 +48,20 @@ void* listener(void* data){
 	printf("Listener thread run \n");
 	return NULL;
 }
+char* getThirdArg(char* string, char delimiter){
+	int i = 0;
+	int count = 0;
+	while(string[i] != '\0'){
+		if(string [i] == delimiter){
+			count ++;
+		}
+		if(count >= 2){
+			return &string[i];
+		}
+		i++;
+	}
+	return string;
+}
 int main(int argc, char ** argv){
 	struct returnInfo* returnData = parser(argc, argv);
 	pthread_attr_t attr;
@@ -65,10 +78,14 @@ int main(int argc, char ** argv){
         }
 char buffer[100];
 while(1){
-	scanf("%s", buffer);
-//	printf("%s \n", buffer);
+	char * origBuffer = malloc(sizeof(char) * 256);
+	fgets( buffer, 256, stdin);
+	strcpy(origBuffer, buffer);
+//	printf("buffer %s", buffer);
 	char* command = strtok(buffer, " ");
-	if(!strcmp(command, "ifconfig")){
+	char* firstArgument = strtok(NULL, " "); 
+//	printf("command %s %d end \n", buffer, strcmp(command, "ifconfig"));
+	if(!strcmp(origBuffer, "ifconfig\n")){
 		struct interface* currInt = returnData -> interfaceList;
 		while(currInt != NULL){
 			printf("%d \t %s \t", currInt -> interId, currInt -> vipSource);
@@ -78,30 +95,35 @@ while(1){
 			printf("\n");
 		}		
 	}
-	if(!strcmp(command, "routes")){printf("routes not implemented");}
-	
-	char* firstArgument = strtok(NULL, " "); 
-	printf(" %s \n",firstArgument);
+	if(!strcmp(origBuffer, "routes\n")){printf("routes not implemented");}
+//	printf("firstArg %s \n",firstArgument);
 	 if(!strcmp(command,"up")){
 		int i = 0;
 		int arg = atoi(firstArgument);
 		struct interface* currInt = returnData -> interfaceList;
 		for(i = 0; i <arg-1; i ++){
+			if(currInt -> next == NULL) printf("Node doesn't exist!");
 			currInt = currInt -> next;
 		}
 		currInt -> upDown = 1;
-		printf("Node %d up!", arg);
+		printf("Node %d up!\n", arg);
 	}
 	if(!strcmp(command,"down")){
 		int i = 0;
                 int arg = atoi(firstArgument);
                 struct interface* currInt = returnData -> interfaceList;
-                printf("got here!\n");
 		for(i = 0; i <arg-1; i ++){
+			if(currInt -> next == NULL) printf("Node doesn't exist!");
                         currInt = currInt -> next;
                 }
                 currInt -> upDown = 0;
-		printf("Node %d down!", arg);
+		printf("Node %d down!\n", arg);
+	}
+	if(!strcmp(command, "send")){
+//		printf("origBuffer %s \n", origBuffer);
+		char* ipString = firstArgument;
+		char* messagePayload = getThirdArg(origBuffer, ' ');
+		printf("payload:%s \n", messagePayload);
 	}
 
 }
