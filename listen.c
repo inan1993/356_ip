@@ -13,6 +13,7 @@
 //uint32_t address;
 //} entries[num_entries];
 
+#define BUFF_SIZE 1400
 
 int listening(char * addr, uint16_t port){
 	int sock;
@@ -32,22 +33,25 @@ int listening(char * addr, uint16_t port){
 		return 1;
 	}
 
-	char* buffer = malloc(sizeof(char)*1400);
-
+	char* buf [1400];
+	// (char*) malloc(sizeof(long) * 100);
+	printf("size - %i\n", sizeof buf);
 //Code from the internet
 	struct sockaddr_storage src_addr;
 	socklen_t src_addr_len=sizeof(src_addr);
-	ssize_t count=recvfrom(sock,buffer,sizeof(buffer),0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
-	if (count==-1) {
-		printf("ERORR %s",strerror(errno));
-	} else if (count==sizeof(buffer)) {
-		printf("datagram too large for buffer: truncated\n");
-		printf("Count = %i \n",count);
-		printf("Buffer=%s\n", buffer);
-	} else {
-		printf("Buffer %s \n",buffer);			// handle_dgram method
+	while(1){
+		ssize_t count=recvfrom(sock,buf,sizeof(buf),0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
+		if (count==-1) {
+			printf("ERORR %s",strerror(errno));
+		} else if (count==sizeof(buf)) {
+			printf("datagram too large for buffer: truncated\n");
+			printf("count = %i \n",(int)sizeof(buf));
+			printf("Buffer=%s\n", buf);
+		} else {
+			printf("count = %i \n",(int)sizeof(buf));
+			printf("Buffer %s \n",buf);			// handle_dgram method
+		}
 	}
-
 	return 0;
 }
 
