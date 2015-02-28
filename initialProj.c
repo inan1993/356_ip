@@ -9,11 +9,11 @@
 int server(uint16_t port);
 int client(const char * addr, uint16_t port);
 
-#define MAX_MSG_LENGTH (512)
+#define MAX_MSG_LENGTH (10)
 #define MAX_BACK_LOG (5)
 
 int main(int argc, char ** argv){
-	char[] filename = argv[0];
+	char* filename = argv[0];
 	if (argc < 3) {
 		printf("Command should be: myprog s <port> or myprog c <port> <address>\n");
 		return 1;
@@ -44,7 +44,7 @@ int client(const char * addr, uint16_t port)
 	struct sockaddr_in server_addr;
 	char msg[MAX_MSG_LENGTH], reply[MAX_MSG_LENGTH*3];
 	memset(reply, 0, sizeof(reply));
-	if ((sock = socket(AF_INET, SOCK_STREAM/* use tcp */, 0)) < 0) {
+	if ((sock = socket(AF_INET, SOCK_DGRAM/* use tcp */, 0)) < 0) {
 	perror("Create socket error:");
 	return 1;
 }
@@ -65,8 +65,9 @@ int recv_len = 0;
 while (1) {
 	fflush(stdin);
 	printf("Enter message: \n");
-	gets(msg);
-	if (send(sock, msg, MAX_MSG_LENGTH, 0) < 0) {
+	// gets(msg);
+	char* msgg = "48723y423y4 23y 4y38 [3h r9h342hr 9h4ifb sdfsdfsdfsdfsfdgsgf g34rhiu4irh 34 r3 489rh9384 b3 fibv934b ib3v";
+	if (send(sock, msgg, MAX_MSG_LENGTH, 0) < 0) {
 		perror("Send error:");
 		return 1;
 	}
@@ -76,7 +77,7 @@ while (1) {
 		return 1;
 	}
 	reply[recv_len] = 0;
-	printf("Server reply:\n %s\n", reply,msg);
+	printf("Server reply:\n %s\n", reply);
 	memset(reply, 0, sizeof(reply));
 }
 close(sock);
