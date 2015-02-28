@@ -48,8 +48,7 @@ int client(const char * addr, uint16_t port)
 		perror("Create socket error:");
 		return 1;
 	}
-char* buf = (char*) malloc(sizeof(char) * 100);
-printf("size - %i\n", (int)sizeof(buf));
+
 
 printf("Socket created\n");
 server_addr.sin_addr.s_addr = inet_addr(addr);

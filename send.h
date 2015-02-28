@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <netinet/in.h>
 //uint16_t command;
 //uint16_t num_entries;
 //struct {
@@ -52,7 +53,7 @@ int sender(const char * addr, uint16_t port, char* msgg, bool flag){
 int main(int argc, char ** argv){
 	char *str = "127.0.0.1";
 	uint16_t port = 1700;
-	char* msgg = "Ipsum lorem bacon";
+	char* msgg = "Ipsum lorem baconnn";
 	bool flag = true; //					flag for detecting if just ip or RIP
 	int c = sender(str, port, msgg, flag);
 }
