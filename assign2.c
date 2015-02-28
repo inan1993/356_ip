@@ -63,13 +63,47 @@ int main(int argc, char ** argv){
 	if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
-char buffer[256]; 
+char buffer[100];
 while(1){
 	scanf("%s", buffer);
 //	printf("%s \n", buffer);
-	if(!strcmp(buffer, "ifconfig")){
-		printf("Yay! config!");
+	char* command = strtok(buffer, " ");
+	if(!strcmp(command, "ifconfig")){
+		struct interface* currInt = returnData -> interfaceList;
+		while(currInt != NULL){
+			printf("%d \t %s \t", currInt -> interId, currInt -> vipSource);
+			if(currInt -> upDown) printf("up");
+			else printf("down");
+			currInt = currInt -> next;
+			printf("\n");
+		}		
 	}
+	if(!strcmp(command, "routes")){printf("routes not implemented");}
+	
+	char* firstArgument = strtok(NULL, " "); 
+	printf(" %s \n",firstArgument);
+	 if(!strcmp(command,"up")){
+		int i = 0;
+		int arg = atoi(firstArgument);
+		struct interface* currInt = returnData -> interfaceList;
+		for(i = 0; i <arg-1; i ++){
+			currInt = currInt -> next;
+		}
+		currInt -> upDown = 1;
+		printf("Node %d up!", arg);
+	}
+	if(!strcmp(command,"down")){
+		int i = 0;
+                int arg = atoi(firstArgument);
+                struct interface* currInt = returnData -> interfaceList;
+                printf("got here!\n");
+		for(i = 0; i <arg-1; i ++){
+                        currInt = currInt -> next;
+                }
+                currInt -> upDown = 0;
+		printf("Node %d down!", arg);
+	}
+
 }
 
 

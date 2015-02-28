@@ -24,6 +24,7 @@ struct interface{
 	int rnPort;
 	char * vipSource;
 	char * vipDest;
+	int upDown;
 	struct interface* next;
 	struct interface* prev;
 }interface;
@@ -60,7 +61,6 @@ struct returnInfo* parser(int argc, char ** argv){
 	char* word = malloc(sizeof(char) * 256);
 	int lineCounter = 0, wordCounter = 0;
 	struct interface* currInt = interfaceList;
-	
 	while(!feof(fd)){
 		fscanf(fd,"%s", word);
 		if(feof(fd))
@@ -91,7 +91,7 @@ struct returnInfo* parser(int argc, char ** argv){
 			currInt->next = nextInterface;
 			currInt->next->prev = currInt;
 			currInt->interId = lineCounter;
-
+			currInt -> upDown = 1;
 			if(wordCounter == 0){
 				char* words = strtok(word,":");
 				char* wordy = (char*) malloc(sizeof(char) * 100);
