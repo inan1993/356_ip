@@ -24,7 +24,7 @@ struct threadInit{
 };
 void testUpdate(struct ripTable* mainTable){
         struct ripUpdate* testUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate));
-        testUpdate -> destVIP = ".89.230";
+        testUpdate -> destVIP = "111.121.89.230";
         testUpdate -> cost = 1;
         testUpdate -> sourceVIP = "10.116.89.157";
         updateTable(testUpdate,mainTable);

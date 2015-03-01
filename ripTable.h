@@ -18,14 +18,15 @@ struct ripEntry{
 }ripEntry;
 
 struct ripTable{
-        struct ripEntry* ripEntries;
-        struct nodeInfo* mainNode;
+	struct ripEntry* ripEntries;
+    struct nodeInfo* mainNode;
 	struct interface* intList;
 }ripTable;
+
 struct ripUpdate{
-	char* destVIP;
+	unsigned long destVIP;
 	int cost;
-	char* sourceVIP;
+	unsigned long sourceVIP;
 };
 
 

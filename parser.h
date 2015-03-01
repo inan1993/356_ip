@@ -28,10 +28,12 @@ struct interface{
 	struct interface* next;
 	struct interface* prev;
 }interface;
+
 struct returnInfo{
 	struct nodeInfo* mainNode ;
 	struct interface* interfaceList;
 } returnInfo;
+
 void printParser(struct nodeInfo *nodeInformation, struct interface* listStart){
 	printf("Local Node address: %s \n", nodeInformation -> nodeAddr);
 	printf("Local Node Port: %i \n\n", nodeInformation -> nodePort);

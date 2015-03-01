@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "ipHeader.h"
+#include "ripTable.h"
 //uint16_t command;
 //uint16_t num_entries;
 //struct {
