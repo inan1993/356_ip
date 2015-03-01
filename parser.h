@@ -24,10 +24,14 @@ struct interface{
 	int rnPort;
 	char * vipSource;
 	char * vipDest;
+	int upDown;
 	struct interface* next;
 	struct interface* prev;
 }interface;
-
+struct returnInfo{
+	struct nodeInfo* mainNode ;
+	struct interface* interfaceList;
+} returnInfo;
 void printParser(struct nodeInfo *nodeInformation, struct interface* listStart){
 	printf("Local Node address: %s \n", nodeInformation -> nodeAddr);
 	printf("Local Node Port: %i \n\n", nodeInformation -> nodePort);
@@ -42,7 +46,7 @@ void printParser(struct nodeInfo *nodeInformation, struct interface* listStart){
 	}
 }
 
-int parser(int argc, char ** argv){
+struct returnInfo* parser(int argc, char ** argv){
 	struct nodeInfo* nodeInformation =(struct nodeInfo*) malloc(sizeof(nodeInfo));
 
 	struct interface* interfaceList = (struct interface*) malloc(sizeof(interface)); 
@@ -56,7 +60,6 @@ int parser(int argc, char ** argv){
 	char* word = malloc(sizeof(char) * 256);
 	int lineCounter = 0, wordCounter = 0;
 	struct interface* currInt = interfaceList;
-	
 	while(!feof(fd)){
 		fscanf(fd,"%s", word);
 		if(feof(fd))
@@ -87,7 +90,7 @@ int parser(int argc, char ** argv){
 			currInt->next = nextInterface;
 			currInt->next->prev = currInt;
 			currInt->interId = lineCounter;
-
+			currInt -> upDown = 1;
 			if(wordCounter == 0){
 				char* words = strtok(word,":");
 				char* wordy = (char*) malloc(sizeof(char) * 100);
@@ -125,7 +128,11 @@ int parser(int argc, char ** argv){
 	}	
 	printf("-----END-----\n\n");
 	currInt->prev->next = NULL;
+	struct returnInfo* returnValue = (struct returnInfo*) malloc(sizeof(struct returnInfo));
+	returnValue->mainNode = nodeInformation;
+	returnValue -> interfaceList = interfaceList;
 	printParser(nodeInformation,interfaceList);
+	return returnValue;
 }
 
 

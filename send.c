@@ -8,6 +8,10 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <netinet/in.h>
+<<<<<<< HEAD
+=======
+#include "ipHeader.h"
+>>>>>>> master
 //uint16_t command;
 //uint16_t num_entries;
 //struct {
@@ -16,12 +20,14 @@
 //} entries[num_entries];
 
 
-#define MAX_MSG_LENGTH (1400)
+
+#define MAX_MSG_LENGTH 1400
+
 
 int sender(const char * addr, uint16_t port, char* msgg, bool flag){
 	int sock;
 	struct sockaddr_in server_addr;
-	char msg[MAX_MSG_LENGTH];
+
 	if ((sock = socket(AF_INET, SOCK_DGRAM/* use UDP */, 0)) < 0) {
 		perror("Create socket error:");
 		return 1;
@@ -38,10 +44,16 @@ int sender(const char * addr, uint16_t port, char* msgg, bool flag){
 	}
 	printf("Connected to node %s:%d\n", addr, port);
 
+	ip_packet ip = ipHeader(msgg, addr, addr);
+	void *stream;
+	stream = malloc(MAX_MSG_LENGTH);
+	printf("size of IP struct = %lu\n", sizeof(ip));
+	printf("size of stream = %lu\n", sizeof(stream));
+	memcpy(stream, &ip,sizeof(ip));
+	memcpy(stream+sizeof(ip), (void*)msgg,100);
+	printf("Stream %s\n", (char*)stream+sizeof(ip));
 
-	int recv_len = 0;
-
-    if (send(sock, msgg, MAX_MSG_LENGTH, 0) < 0) {
+    if (sendto(sock, (void*)stream,MAX_MSG_LENGTH, 0,0,0) < 0) {
     	perror("Send error:");
     	return 1;
     }
@@ -51,9 +63,10 @@ int sender(const char * addr, uint16_t port, char* msgg, bool flag){
 }
 
 int main(int argc, char ** argv){
-	char *str = "127.0.0.1";
+
+	char *destination = "127.0.0.1";
 	uint16_t port = 1700;
-	char* msgg = "Ipsum lorem baconnn";
+	char msgg [100] = "0123456789 xxx";
 	bool flag = true; //					flag for detecting if just ip or RIP
-	int c = sender(str, port, msgg, flag);
+	int c = sender(destination, port, msgg, flag);
 }

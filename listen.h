@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "ipHeader.h"
 //uint16_t command;
 //uint16_t num_entries;
 //struct {
@@ -13,7 +14,7 @@
 //uint32_t address;
 //} entries[num_entries];
 
-#define BUFF_SIZE 1400
+#define BUFF_SIZE 1401
 
 int listening(char * addr, uint16_t port){
 	int sock;
@@ -33,32 +34,40 @@ int listening(char * addr, uint16_t port){
 		return 1;
 	}
 
-	char* buf [1400];
-	// (char*) malloc(sizeof(long) * 100);
-	printf("size - %lu\n",sizeof(buf));
+
+	char buf [BUFF_SIZE];
+
+	// (void*) vv [BUFF_SIZE];
 
 //Code from the internet
 	struct sockaddr_storage src_addr;
 	socklen_t src_addr_len=sizeof(src_addr);
 	while(1){
-		ssize_t count=recvfrom(sock,buf,sizeof(buf),0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
-		printf("New message:\n");
+
+		ssize_t count=recvfrom(sock,&buf,BUFF_SIZE,0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
+		ip_packet ip;		
+		memcpy(&ip,buf,sizeof(ip));
+		
+		// char* msg = (char*)(buf+sizeof(ip));
+
 		if (count==-1) {
 			printf("ERORR %s",strerror(errno));
 		} else if (count==sizeof(buf)) {
 			printf("datagram too large for buffer: truncated\n");
-			printf("count = %i \n",(int)sizeof(buf));
-			printf("Buffer=%s\n", buf);
+			printf("count = %zi\n",count);
+			printf("Payload=%hu\n", ip.ip_header.ip_sum);
 		} else {
-			printf("count = %i \n",(int)sizeof(buf));
-			printf("Buffer %s \n",buf);			// handle_dgram method
+			printf("count = %zi \n",count);
+			printf("checksum=%hu\n",ip.ip_header.ip_sum);			// handle_dgram method
+			printf("Bytes - %s\n", (char*)(buf+sizeof(ip)));
+			// printf("Payload=%s\n", msg);
 		}
 	}
 	return 0;
 }
-
+// 
 int main(int argc, char ** argv){
-	char *str = "127.0.0.1";
+	char *listen_on = "127.0.0.1";
 	uint16_t port = 1700;
-	int c = listening(str, port);
+	int c = listening(listen_on, port);
 }
