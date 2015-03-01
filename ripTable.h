@@ -23,12 +23,38 @@ struct ripTable{
 	struct interface* intList;
 }ripTable;
 struct ripUpdate{
-	char* destVIP;
+	unsigned long destVIP;
 	int cost;
-	char* sourceVIP;
+	unsigned long sourceVIP;
 };
 
+char* addrToString(unsigned long updateAddr){
+	char* tempy = malloc(sizeof(char) * 100);
+	struct in_addr* addr1 =(struct in_addr*) malloc(sizeof(struct in_addr));
+        addr1->s_addr = updateAddr;
+	strcpy(tempy, inet_ntoa(*addr1));
+	printf("tempy: %s original: %lu\n", tempy,updateAddr );
+	return tempy;
 
+}
+unsigned long addrToNumber(char* ip){
+
+}
+struct ripUpdate* updateFromInterface(struct interface* inter, int cost){
+	struct ripUpdate* update = (struct ripUpdate*) malloc(sizeof(struct ripUpdate));
+	update -> destVIP = inet_addr(inter -> vipDest);
+	update -> cost = cost;
+	update -> sourceVIP = inet_addr(inter -> vipSource);
+}
+struct interface* getInterfaceByID(int id, struct ripTable* mainTable){
+	struct interface* currInt = mainTable -> intList;
+	while(currInt != NULL){
+		if(currInt -> interId == id){
+			return currInt;
+		}
+		currInt = currInt -> next;
+	}
+}
 struct interface* getRouteByDestVIP(char* destVIP, struct ripTable* mainTable){
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	struct nodeInfo* nextHop = (struct nodeInfo*) malloc(sizeof(nodeInfo));
@@ -72,37 +98,38 @@ struct interface* getInterfaceFromNextHopVIP(struct ripTable* mainTable,char* sr
 		currList = currList -> next;
 	}
 }
+//unused
+void updateLocally(struct interface* changedInterface, int cost, struct ripTable* mainTable){
+	struct ripEntry* currEntry = mainTable -> ripEntries;
+	while(currEntry != NULL){
+		if(changedInterface == currEntry -> nextHop){
+			currEntry -> cost = cost;
+		}
+		currEntry = currEntry -> next;
+	}
+}
 void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	while(currEntry != NULL){
-		if(!strcmp(update -> destVIP, currEntry -> destVIP)){
-			if(update -> cost == -1){
-				if(currEntry -> next != NULL && currEntry ->prev != NULL){
-					currEntry->prev->next = currEntry -> next;
-					currEntry -> next -> prev = currEntry -> prev;
-				}
-				else if(currEntry -> prev == NULL){
-					currEntry -> next -> prev = NULL;
-					mainTable -> ripEntries = currEntry -> next;
-				}
-				else if(currEntry -> next == NULL){
-					currEntry -> prev -> next = NULL;
-					currEntry = currEntry->prev;
-				}
-				printf("REMOVING SOMETHING");
+		if(!strcmp(addrToString(update -> destVIP), currEntry -> nextHop -> vipSource)){
+			if(!strcmp(addrToString(update -> sourceVIP), currEntry -> nextHop -> vipDest)){
+				currEntry -> cost = update -> cost;
 			}
-			if(update -> cost >= currEntry -> cost){
+			else{
+			if(update -> cost >= currEntry -> cost + currEntry -> nextHop -> upDown){
 				printf("returned and did nothing, currEntry -> nextHop \n");
 				return;
 			}
 			else{
 				currEntry -> cost = update -> cost;
-				currEntry -> nextHop = getInterfaceFromNextHopVIP(mainTable, update -> sourceVIP);
+				currEntry -> nextHop = getInterfaceFromNextHopVIP(mainTable,addrToString( update -> sourceVIP));
 				printf("returned and updated %p \n", currEntry -> nextHop);
 				return;
 			}
 		}
+		}
 		if(currEntry -> next == NULL){
+			if(update -> cost == -1){ return;}
 			break;
 		}
 		
@@ -112,16 +139,18 @@ void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 	currEntry -> next = newEntry;
 	newEntry -> prev = currEntry;
 	newEntry -> cost = update -> cost;
-	newEntry -> destVIP = update -> destVIP;
-	printf("no new matches \n");
-	newEntry -> nextHop = getInterfaceFromNextHopVIP(mainTable, update -> sourceVIP);
-	printf("nextHop: %p", newEntry->nextHop);
+	newEntry -> destVIP = addrToString(update -> destVIP);
+	printf("no new matches destVIP: %s \n",addrToString(update ->  destVIP));
+	newEntry -> next = NULL;
+	newEntry -> nextHop = getInterfaceFromNextHopVIP(mainTable, addrToString(update -> sourceVIP));
+	printf("nextHop: %p %p", newEntry->nextHop, newEntry -> next);
 }
 int getTableLength(struct ripTable* mainTable){
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	int i = 0;
 	while(currEntry != NULL){
 		i++;
+//		printf("i: %d\n" ,i);
 		currEntry = currEntry -> next;
 	}
 	return i;
@@ -132,21 +161,16 @@ struct ripUpdate* prepareUpdateData(struct ripTable* mainTable, struct interface
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	struct ripUpdate* currUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate)*getTableLength(mainTable));
 	int counter = 0;
+	printf("\n%d\n", getTableLength(mainTable));
 	while(currEntry != NULL){
-		currUpdate[counter].destVIP = currEntry ->destVIP;
-		printf("where it breaks: %p  %d\n", currEntry -> nextHop,counter);
-		if(!(currEntry -> nextHop -> upDown)){
-			currUpdate[counter].cost = -1;//currEntry -> cost + 1;
-		}
-		else if(!strcmp(currEntry -> nextHop -> vipDest, receiverInt ->vipDest)){
-			currUpdate[counter].cost = 16;
-		}
-		else{
-			currUpdate[counter].cost = currEntry -> cost + 1;
-		}
-		currUpdate[counter].sourceVIP = currEntry -> nextHop ->vipSource;	
+//		char* temp = malloc(sizeof(char) * 100);
+//		strcpy(temp, currEntry -> destVIP);
+		currUpdate[counter].destVIP = inet_addr(currEntry -> destVIP);
+		currUpdate[counter].cost = currEntry -> cost +currEntry -> nextHop -> upDown +1;
+		currUpdate[counter].sourceVIP = inet_addr(currEntry -> nextHop ->vipSource);
+		printf("dest:%s ", currEntry -> destVIP);	
 		currEntry = currEntry -> next;
-		printf("destIP: %s, cost: %d, sourceIP: %s \n", currUpdate[counter].destVIP, currUpdate[counter].cost, currUpdate[counter].sourceVIP);
+		printf("destIP: %s, cost: %d, sourceIP: %s \n",addrToString(currUpdate[counter].destVIP), currUpdate[counter].cost, addrToString(currUpdate[counter].sourceVIP));
 		counter ++;
 	}
 	printf("\n");

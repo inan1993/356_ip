@@ -22,11 +22,11 @@ struct threadInit{
 	struct nodeInfo mainNode;
 	struct ripTable* mainTable;	
 };
-void testUpdate(struct ripTable* mainTable){
+void testUpdate(char* dest, int cost, char* source, struct ripTable* mainTable){
         struct ripUpdate* testUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate));
-        testUpdate -> destVIP = ".89.230";
-        testUpdate -> cost = 1;
-        testUpdate -> sourceVIP = "10.116.89.157";
+        testUpdate -> destVIP =inet_addr(dest);
+        testUpdate -> cost = cost;
+        testUpdate -> sourceVIP = inet_addr(source);
         updateTable(testUpdate,mainTable);
 //      printTable(mainTable);
 }
@@ -39,9 +39,11 @@ void printTable(struct ripTable* table){
 	struct ripEntry* currEntry = table ->ripEntries;
 	while(currEntry != NULL){
 		printf("Destination: %s NextHopAddr: %s:%d VIP: %s \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort, currEntry -> nextHop -> vipDest);
-		printf("Cost %d\n", currEntry -> cost);
+		printf("Cost %d\n", currEntry -> cost + currEntry -> nextHop -> upDown);
 		currEntry = currEntry -> next;
-	}  
+	}
+	printf("size read: %d \n", getTableLength(table));  
+	printf("\n");
 }
 void* reader(void* data){
 	struct returnInfo* allInfo = (struct returnInfo*) data;
@@ -76,9 +78,13 @@ int main(int argc, char ** argv){
 	struct ripTable* mainTable =(struct ripTable*) malloc(sizeof(ripTable));
 	initializeTable(returnData -> mainNode, returnData -> interfaceList, mainTable);
 	printTable(mainTable);
-	testUpdate(mainTable);
-	printTable(mainTable);	
+	printf("\n %d \n", getTableLength(mainTable));
+	testUpdate("10.10.10.10",1,"168" , mainTable);
+	printf("PLEASE work: %lu", (inet_addr("10.10.10.10")).s_addr);
+//	printTable(mainTable);	
+	printf("\n %d \n", getTableLength(mainTable));
 	prepareUpdateData(mainTable, mainTable -> intList);
+	printf("\n %d \n", getTableLength(mainTable));
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -103,7 +109,7 @@ int main(int argc, char ** argv){
         }
 
 
-char buffer[100];
+char buffer[256];
 while(1){
 	char * origBuffer = malloc(sizeof(char) * 256);
 	fgets( buffer, 256, stdin);
@@ -122,7 +128,7 @@ while(1){
 			printf("\n");
 		}		
 	}
-	if(!strcmp(origBuffer, "routes\n")){printf("routes not implemented");}
+	if(!strcmp(origBuffer, "routes\n")){printTable(mainTable);}
 //	printf("firstArg %s \n",firstArgument);
 	 if(!strcmp(command,"up")){
 		int i = 0;
@@ -132,7 +138,9 @@ while(1){
 			if(currInt -> next == NULL) printf("Node doesn't exist!");
 			currInt = currInt -> next;
 		}
-		currInt -> upDown = 1;
+		currInt -> upDown = 0;
+	//	struct ripUpdate* update = updateFromInterface(currInt, 1);
+	//	updateTable(update, mainTable);
 		printf("Node %d up!\n", arg);
 	}
 	if(!strcmp(command,"down")){
@@ -143,10 +151,12 @@ while(1){
 			if(currInt -> next == NULL) printf("Node doesn't exist!");
                         currInt = currInt -> next;
                 }
-                currInt -> upDown = 0;
+                currInt -> upDown = 16;
 		//Need to launch thread to notify others about it being down
+	//	struct ripUpdate* update = updateFromInterface(currInt, -1);
+	//	updateLocally(currInt, 16, mainTable);
 		printf("Node %d down!\n", arg);
-		prepareUpdateData(mainTable, mainTable -> intList);
+	//	prepareUpdateData(mainTable, mainTable -> intList);
 	}
 	if(!strcmp(command, "send")){
 //		printf("origBuffer %s \n", origBuffer);
@@ -162,7 +172,6 @@ while(1){
 		 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
-
 	}
 
 }
