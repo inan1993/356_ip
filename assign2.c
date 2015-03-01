@@ -24,11 +24,11 @@ struct threadInit{
 };
 void testUpdate(struct ripTable* mainTable){
         struct ripUpdate* testUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate));
-        testUpdate -> destVIP = "10.116.89.230";
+        testUpdate -> destVIP = ".89.230";
         testUpdate -> cost = 1;
         testUpdate -> sourceVIP = "10.116.89.157";
         updateTable(testUpdate,mainTable);
-//        printTable(mainTable);
+//      printTable(mainTable);
 }
 
 void printTable(struct ripTable* table){
@@ -77,7 +77,8 @@ int main(int argc, char ** argv){
 	initializeTable(returnData -> mainNode, returnData -> interfaceList, mainTable);
 	printTable(mainTable);
 	testUpdate(mainTable);
-	printTable(mainTable);
+	printTable(mainTable);	
+	prepareUpdateData(mainTable, mainTable -> intList);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -145,6 +146,7 @@ while(1){
                 currInt -> upDown = 0;
 		//Need to launch thread to notify others about it being down
 		printf("Node %d down!\n", arg);
+		prepareUpdateData(mainTable, mainTable -> intList);
 	}
 	if(!strcmp(command, "send")){
 //		printf("origBuffer %s \n", origBuffer);
