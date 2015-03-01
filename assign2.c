@@ -20,15 +20,25 @@
 
 struct threadInit{
 	struct nodeInfo mainNode;
-	
+	struct ripTable* mainTable;	
 };
+void testUpdate(struct ripTable* mainTable){
+        struct ripUpdate* testUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate));
+        testUpdate -> destVIP = "10.116.89.230";
+        testUpdate -> cost = 1;
+        testUpdate -> sourceVIP = "10.116.89.157";
+        updateTable(testUpdate,mainTable);
+//        printTable(mainTable);
+}
+
 void printTable(struct ripTable* table){
+	printf("\n");
 	struct ripEntry* entries = table -> ripEntries;
 	struct nodeInfo* mainNode = table -> mainNode;
 	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
 	struct ripEntry* currEntry = table ->ripEntries;
 	while(currEntry != NULL){
-		printf("Destination: %s NextHopAddr: %s:%d \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort);
+		printf("Destination: %s NextHopAddr: %s:%d VIP: %s \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort, currEntry -> nextHop -> vipDest);
 		printf("Cost %d\n", currEntry -> cost);
 		currEntry = currEntry -> next;
 	}  
@@ -66,18 +76,32 @@ int main(int argc, char ** argv){
 	struct ripTable* mainTable =(struct ripTable*) malloc(sizeof(ripTable));
 	initializeTable(returnData -> mainNode, returnData -> interfaceList, mainTable);
 	printTable(mainTable);
+	testUpdate(mainTable);
+	printTable(mainTable);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	pthread_t* readThread = (pthread_t *)malloc(sizeof(pthread_t));
 	pthread_t* listenThread = (pthread_t*) malloc(sizeof(pthread_t));
 	int rc = 0;
+	//Start listening/dealing with updating
 	if(rc = pthread_create(readThread, &attr, reader, (void*)returnData)){
 		printf("thread creation error %d\n", rc);	
 	}
+	//send initial request for data
 	if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
+	//triggered updates
+	 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+                printf("thread creation error%d\n", rc);
+        }
+	//Check if threads are expired
+	 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+                printf("thread creation error%d\n", rc);
+        }
+
+
 char buffer[100];
 while(1){
 	char * origBuffer = malloc(sizeof(char) * 256);
@@ -119,6 +143,7 @@ while(1){
                         currInt = currInt -> next;
                 }
                 currInt -> upDown = 0;
+		//Need to launch thread to notify others about it being down
 		printf("Node %d down!\n", arg);
 	}
 	if(!strcmp(command, "send")){
@@ -126,6 +151,16 @@ while(1){
 		char* ipString = firstArgument;
 		char* messagePayload = getThirdArg(origBuffer, ' ');
 		printf("payload:%s \n", messagePayload);
+		struct interface* nextHop = getRouteByDestVIP(ipString,mainTable);
+		struct nodeInfo* nextHopInfo = (struct nodeInfo*)malloc(sizeof(struct nodeInfo));
+		nextHopInfo -> nodeAddr = nextHop -> rnAddr;
+		nextHopInfo -> nodePort = nextHop -> rnPort;
+		printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
+		//launch thread to send data -- need to include route data
+		 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+                printf("thread creation error%d\n", rc);
+        }
+
 	}
 
 }
