@@ -97,6 +97,10 @@ ip_packet ipHeader(char payload[PACKET_LEN], char* src, char* dest){
 // 	ip_packet ip = ipHeader(payload, src, dest);
 // }
 
+
+
+
+
 /*
  * Structure of an internet header, naked of options.
  */

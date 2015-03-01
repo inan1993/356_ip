@@ -45,24 +45,23 @@ int listening(char * addr, uint16_t port){
 	while(1){
 
 		ssize_t count=recvfrom(sock,&buf,BUFF_SIZE,0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
-		ip_packet ip;
-		
+		ip_packet ip;		
 		memcpy(&ip,buf,sizeof(ip));
+		
 		// char* msg = (char*)(buf+sizeof(ip));
 
-		// if (count==-1) {
-		// 	printf("ERORR %s",strerror(errno));
-		// } else if (count==sizeof(buf)) {
-		// 	printf("datagram too large for buffer: truncated\n");
-		// 	printf("count = %zi\n",count);
-		// 	printf("Payload=%hu\n", ip.ip_header.ip_sum);
-		// } else {
+		if (count==-1) {
+			printf("ERORR %s",strerror(errno));
+		} else if (count==sizeof(buf)) {
+			printf("datagram too large for buffer: truncated\n");
+			printf("count = %zi\n",count);
+			printf("Payload=%hu\n", ip.ip_header.ip_sum);
+		} else {
 			printf("count = %zi \n",count);
 			printf("checksum=%hu\n",ip.ip_header.ip_sum);			// handle_dgram method
 			printf("Bytes - %s\n", (char*)(buf+sizeof(ip)));
-			printf("Payload=%s\n", msg);
-		// }
-
+			// printf("Payload=%s\n", msg);
+		}
 	}
 	return 0;
 }
