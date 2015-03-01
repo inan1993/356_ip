@@ -80,7 +80,7 @@ int main(int argc, char ** argv){
 	printTable(mainTable);
 	printf("\n %d \n", getTableLength(mainTable));
 	testUpdate("10.10.10.10",1,"168" , mainTable);
-	printf("PLEASE work: %lu", (inet_addr("10.10.10.10")).s_addr);
+//	printf("PLEASE work: %lu", (inet_addr("10.10.10.10")).s_addr);
 //	printTable(mainTable);	
 	printf("\n %d \n", getTableLength(mainTable));
 	prepareUpdateData(mainTable, mainTable -> intList);
