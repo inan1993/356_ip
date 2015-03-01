@@ -92,7 +92,7 @@ struct returnInfo* parser(int argc, char ** argv){
 			currInt->next = nextInterface;
 			currInt->next->prev = currInt;
 			currInt->interId = lineCounter;
-			currInt -> upDown = 1;
+			currInt -> upDown = 0;
 			if(wordCounter == 0){
 				char* words = strtok(word,":");
 				char* wordy = (char*) malloc(sizeof(char) * 100);
