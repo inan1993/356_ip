@@ -14,7 +14,7 @@ struct ripEntry{
         char* destVIP;
         struct interface* nextHop;
         int cost;
-        time_t updateTime;
+        int updateTime;
         struct ripEntry* next;
         struct ripEntry* prev;
 }ripEntry;
@@ -31,8 +31,8 @@ struct ripUpdate{
 	unsigned long sourceVIP;
 };
 struct sendData{
-	int flag;
 	int size;
+	int flag;
 	char buffer[];
 };
 
@@ -127,6 +127,7 @@ void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	while(currEntry != NULL){
 		if(!strcmp(addrToString(update -> destVIP), currEntry -> nextHop -> vipSource)){
+			currEntry -> updateTime = 0;
 			if(!strcmp(addrToString(update -> sourceVIP), currEntry -> nextHop -> vipDest)){
 				currEntry -> cost = update -> cost;
 			}
@@ -141,13 +142,13 @@ void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 				printf("returned and updated %p \n", currEntry -> nextHop);
 				return;
 			}
-		}
+			
 		}
 		if(currEntry -> next == NULL){
 			if(update -> cost == -1){ return;}
 			break;
 		}
-		
+		}
 		currEntry = currEntry -> next;
 	} 
 	struct ripEntry* newEntry = (struct ripEntry*) malloc(sizeof(ripEntry));
@@ -179,8 +180,8 @@ void* prepareUpdateData(struct ripTable* mainTable, struct interface* receiverIn
 	struct ripUpdate* currUpdate = (struct ripUpdate*)(buffer -> buffer);
 	//(struct ripUpdate*)malloc(sizeof(struct ripUpdate)*getTableLength(mainTable));
 	int counter = 0;
-
 	printf("\nTable length:%d\n", getTableLength(mainTable));
+
 	
 	while(currEntry != NULL){
 //		char* temp = malloc(sizeof(char) * 100);
@@ -195,12 +196,13 @@ void* prepareUpdateData(struct ripTable* mainTable, struct interface* receiverIn
 		currUpdate[counter].destVIP = addrToNumber(currEntry -> destVIP);
 //		currUpdate[counter].cost = currEntry -> cost +currEntry -> nextHop -> upDown +1;
 		currUpdate[counter].sourceVIP = addrToNumber(currEntry -> nextHop ->vipSource);
-		printf("dest:%s\n ", currEntry -> destVIP);	
+//		printf("dest:%s\n ", currEntry -> destVIP);	
 		currEntry = currEntry -> next;
-		printf("destIP: %s, cost: %d, sourceIP: %s \n",addrToString(currUpdate[counter].destVIP), currUpdate[counter].cost, addrToString(currUpdate[counter].sourceVIP));
+//		printf("destIP: %s, cost: %d, sourceIP: %s \n",addrToString(currUpdate[counter].destVIP), currUpdate[counter].cost, addrToString(currUpdate[counter].sourceVIP));
 		counter ++;
 	}
 	printf("\n-----End of Creating Update Array-----\n");
+
 	return buffer;
 	
 }

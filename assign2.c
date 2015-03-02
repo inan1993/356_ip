@@ -8,8 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
-#include "parser.h"
-#include "ripTable.h"
+#include "threadMethods.h"
 //#include "listen.h"
 //uint16_t command;
 //uint16_t num_entries;
@@ -76,7 +75,8 @@ int getThirdArg(char* string, char delimiter, char* thirdArg){
 		}
 		i++;
 	}
-	thirdArg = &string[index];
+	
+	strcpy(thirdArg, &string[index]);
 	printf("thirdArg:  %s:%p: \n",thirdArg, thirdArg);
 	return length;
 }
@@ -84,31 +84,34 @@ int main(int argc, char ** argv){
 	struct returnInfo* returnData = parser(argc, argv);
 	struct ripTable* mainTable =(struct ripTable*) malloc(sizeof(ripTable));
 	initializeTable(returnData -> mainNode, returnData -> interfaceList, mainTable);
-	printTable(mainTable);
-	testUpdate("10.10.10.10",1,"0.0.0.168" , mainTable);
-	prepareUpdateData(mainTable, mainTable -> intList);
+//	printTable(mainTable);
+//	testUpdate("10.10.10.10",1,"0.0.0.168" , mainTable);
+//	prepareUpdateData(mainTable, mainTable -> intList);
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_t* readThread = (pthread_t *)malloc(sizeof(pthread_t));
+	
+	pthread_t* updateThread = (pthread_t *)malloc(sizeof(pthread_t));
+	pthread_t* periodicThread = (pthread_t *)malloc(sizeof(pthread_t));
 	pthread_t* listenThread = (pthread_t*) malloc(sizeof(pthread_t));
+	pthread_t* timeoutThread = (pthread_t*) malloc(sizeof(pthread_t));
 	int rc = 0;
 	//Start listening/dealing with updating
-	if(rc == pthread_create(readThread, &attr, reader, (void*)returnData)){
+	if(rc = pthread_create(periodicThread, &attr, triggeredUpdates, (void*)mainTable)){
 		printf("thread creation error %d\n", rc);	
 	}
-	//send initial request for data
-	if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
+//	send initial request for data
+	if(rc = pthread_create(updateThread, &attr, sendUpdate,(void*)mainTable)){
                 printf("thread creation error%d\n", rc);
         }
 	//triggered updates
-	 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
-                printf("thread creation error%d\n", rc);
-        }
+	 if(rc = pthread_create(listenThread, &attr, listeningThread, (void*)mainTable)){
+               printf("thread creation error%d\n", rc);
+ 	    }
 	//Check if threads are expired
-	 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
-                printf("thread creation error%d\n", rc);
-        }
+	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
+               printf("thread creation error%d\n", rc);
+          }
 
 
 char buffer[256];
@@ -164,28 +167,30 @@ while(1){
 //		printf("origBuffer %s \n", origBuffer);
 		char* ipString = firstArgument;
 		struct sendData* payload = (struct sendData*)(malloc(sizeof(char)*256 + sizeof(int)*2));	
+	//	printf("payolad buffer:%p \n ", payload -> buffer);
 		int size = getThirdArg(origBuffer, ' ', payload -> buffer);
-		printf("size: %p \n", payload -> buffer);	
+		printf("size: %s \n", payload -> buffer);	
 	//void* buffer = malloc(sizeof(char) * size+sizeof(int));
 		payload -> size = size;
 		payload -> flag = 3;
 		struct interface* nextHop = getRouteByDestVIP(ipString,mainTable);
-		printf("made it past that...");
+	//	printf("made it past that...");
 		struct nodeInfo* nextHopInfo = (struct nodeInfo*)malloc(sizeof(struct nodeInfo));
 		nextHopInfo -> nodeAddr = nextHop -> rnAddr;
 		nextHopInfo -> nodePort = nextHop -> rnPort;
-		printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
+	//	printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
+		pthread_t* userThread = (pthread_t *)malloc(sizeof(pthread_t));
+		struct user* user = (struct user*)malloc(sizeof(struct user));
+		user -> mainTable = mainTable;
+		user ->	ttl = 15;
+		user -> destVIP = ipString;
+		user -> buffer = payload;	
 		//launch thread to send data -- need to include route data
+		if(rc = pthread_create(userThread, &attr, sendUserData,(void*)user)){
+       	         printf("thread creation error%d\n", rc);
 
-		 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
-
-                printf("thread creation error%d\n", rc);
         }
-	printf("-->");
+	printf("-->\n");
 	}
 }
-
-
-//pthread_join(*readThread,NULL);
-//pthread_join(*listenThread, NULL);
 }
