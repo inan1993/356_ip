@@ -21,6 +21,7 @@ struct threadInit{
 	struct nodeInfo mainNode;
 	struct ripTable* mainTable;	
 };
+
 void testUpdate(char* dest, int cost, char* source, struct ripTable* mainTable){
         struct ripUpdate* testUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate));
 
