@@ -76,6 +76,10 @@ struct returnInfo* parser(int argc, char ** argv){
 			char* temp = (char*)malloc(sizeof(char)*100);
 			strcpy(temp,strtok(word, ":"));
 			nodeInformation->nodeAddr = temp;	
+			if(!strcmp(temp, "localhost")){
+                                  nodeInformation -> nodeAddr = "127.0.0.1";
+                                }
+
 			printf("nodeaddr %s\n",nodeInformation->nodeAddr);	
 			unsigned long address = inet_addr(word);
 					// printf("addr = %lu", address);

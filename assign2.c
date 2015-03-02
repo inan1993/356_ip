@@ -50,7 +50,7 @@ void printTable(struct ripTable* table){
 	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
 	struct ripEntry* currEntry = table ->ripEntries;
 	while(currEntry != NULL){
-		printf("Destination: %s NextHopAddr: %s:%d VIP: %s \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort, currEntry -> nextHop -> vipDest);
+		printf("Destination: %s NextHopAddr: %s:%d VIP: %s time: %d \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort, currEntry -> nextHop -> vipSource, currEntry -> updateTime);
 		printf("Cost %d\n", currEntry -> cost + currEntry -> nextHop -> upDown);
 		currEntry = currEntry -> next;
 	}
@@ -113,16 +113,16 @@ int main(int argc, char ** argv){
 		printf("thread creation error %d\n", rc);	
 	}
 //	send initial request for data
-	if(rc = pthread_create(updateThread, &attr, sendUpdate,(void*)mainTable)){
-                printf("thread creation error%d\n", rc);
-        }
+//	if(rc = pthread_create(updateThread, &attr, sendUpdate,(void*)mainTable)){
+  //              printf("thread creation error%d\n", rc);
+    //    }
 	//triggered updates
 	 if(rc = pthread_create(listenThread, &attr, listeningThread, (void*)mainTable)){
                printf("thread creation error%d\n", rc);
- 	    }
+	    }
 	//Check if threads are expired
 	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
-               printf("thread creation error%d\n", rc);
+              printf("thread creation error%d\n", rc);
           }
 
 
@@ -168,8 +168,16 @@ while(1){
 			if(currInt -> next == NULL) printf("Node doesn't exist!");
                         currInt = currInt -> next;
                 }
-                currInt -> upDown = 16;
+                currInt -> upDown = 100;
+		pthread_t* downThread = (pthread_t*) malloc(sizeof(pthread_t));
+       			 int rc = 0;
+        //Start listening/dealing with updating
+       		if(rc = pthread_create(downThread, &attr, sendUpdate, (void*)mainTable)){
+                printf("thread creation error %d\n", rc);
+        }
+
 	//Need to launch thread to notify others about it being down
+		
 	//	struct ripUpdate* update = updateFromInterface(currInt, -1);
 	//	updateLocally(currInt, 16, mainTable);
 		printf("Node %d down!\n", arg);

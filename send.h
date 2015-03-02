@@ -34,7 +34,7 @@ int sender(void* msg, char*source_addVIP, char* dest_addr, uint16_t port, char*d
  		perror("Create socket error:");
  		return 1;
  	}
- 	printf("Socket created\n");
+ //	printf("Socket created\n");
 
  	destination_addr.sin_addr.s_addr = inet_addr(dest_addr);
  	destination_addr.sin_family = AF_INET;
@@ -44,7 +44,7 @@ int sender(void* msg, char*source_addVIP, char* dest_addr, uint16_t port, char*d
  		perror("Connect error:");
  		return 1;
  	}
- 	printf("Connected to node %s:%d\n", dest_addr, port);
+// 	printf("Connected to node %s:%d\n", dest_addr, port);
  	// printf("length of buffer %lu\n",sizeof(*msg));						// FIX???
  
  	void *stream;
@@ -64,15 +64,15 @@ int sender(void* msg, char*source_addVIP, char* dest_addr, uint16_t port, char*d
  		memcpy(stream+sizeof(ip), (void*)msg,size_of_payload);
  	}
  	
- 	// printf("Stream %s\n", (char*)stream+sizeof(ip));
+ //	 printf("Stream %s\n", (char*)stream+sizeof(ip));
  
-     if (sendto(sock, (void*)stream,MAX_MSG_LENGTH, 0,0,0) < 0) {
-     	perror("Send error:");
+     if (sendto(sock, (void*)stream , MAX_MSG_LENGTH, 0,0,0) < 0) {
+     	perror("Send error:\n");
      	return 1;
      }
  	free(stream);
     close(sock);
-    printf("Packet sent\n\n");
+   // printf("Packet sent\n\n");
     return 0;
  }
 

@@ -41,7 +41,7 @@ char* addrToString(unsigned long updateAddr){
 	struct in_addr* addr1 =(struct in_addr*) malloc(sizeof(struct in_addr));
         addr1->s_addr = updateAddr;
 	strcpy(tempy, inet_ntoa(*addr1));
-	printf("tempy: %s original: %lu\n", tempy,updateAddr );
+//	printf("tempy: %s original: %lu\n", tempy,updateAddr );
 	return tempy;
 
 }
@@ -94,6 +94,7 @@ void initializeTable(struct nodeInfo* mainNode, struct interface* intList, struc
 			nextEntry -> prev = currEntry;
 			currEntry = nextEntry;
 		}
+		printf("currInt next %p \n", currInt -> next);
 		currInt = currInt -> next;
 	}
 	mainTable -> mainNode = mainNode;
@@ -104,12 +105,13 @@ void initializeTable(struct nodeInfo* mainNode, struct interface* intList, struc
 struct interface* getInterfaceFromNextHopVIP(struct ripTable* mainTable,char* srcVIP){
 	struct interface* currList = mainTable -> intList;
 	while(currList != NULL){
-		if(strcmp(currList -> vipDest,srcVIP)){
+		printf("VIP: %s %s \n", currList -> vipDest, srcVIP);
+		if(!strcmp(currList -> vipDest,srcVIP)){
 			return currList;
 		}
 		currList = currList -> next;
 	}
-	printf("Interface Not Found!!!!!!!\n");
+	printf("Interface Not Found!!!!!!! %s\n", srcVIP);
 }
 
 //unused
@@ -129,7 +131,10 @@ void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 		if(!strcmp(addrToString(update -> destVIP), currEntry -> nextHop -> vipSource)){
 			currEntry -> updateTime = 0;
 			if(!strcmp(addrToString(update -> sourceVIP), currEntry -> nextHop -> vipDest)){
-				currEntry -> cost = update -> cost;
+				if(update-> cost < 16 ||update -> cost >= 100){
+					currEntry -> cost = update -> cost;
+				}
+				return;
 			}
 			else{
 			if(update -> cost >= currEntry -> cost + currEntry -> nextHop -> upDown){
@@ -144,14 +149,15 @@ void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 			}
 			
 		}
+		}
 		if(currEntry -> next == NULL){
 			if(update -> cost == -1){ return;}
 			break;
-		}
-		}
+		}	
 		currEntry = currEntry -> next;
-	} 
+	}
 	struct ripEntry* newEntry = (struct ripEntry*) malloc(sizeof(ripEntry));
+	printf("currEntry: %p %d \n", currEntry, 1);
 	currEntry -> next = newEntry;
 	newEntry -> prev = currEntry;
 	newEntry -> cost = update -> cost;
@@ -172,6 +178,7 @@ int getTableLength(struct ripTable* mainTable){
 	return i;
 }
 //Integer for the number of updates
+
 void* prepareUpdateData(struct ripTable* mainTable, struct interface* receiverInt){
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	struct sendData* buffer = malloc(sizeof(int)* 2 + getTableLength(mainTable) * sizeof(struct ripUpdate));
@@ -188,7 +195,7 @@ void* prepareUpdateData(struct ripTable* mainTable, struct interface* receiverIn
 //		strcpy(temp, currEntry -> destVIP);
 		if(currEntry -> nextHop == receiverInt){
 //			printf("Reverse Poison Update\n");
-			currUpdate[counter].cost = 17;
+			currUpdate[counter].cost = 17 + currEntry -> nextHop -> upDown;
 		}
 		else{
 			currUpdate[counter].cost = currEntry -> cost +currEntry -> nextHop -> upDown +1;
