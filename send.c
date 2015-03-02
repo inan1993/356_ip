@@ -21,20 +21,20 @@
 #define MAX_MSG_LENGTH 1400
 
 
-int sender(void* msg, char*source_add, uint16_t port, char* dest_addr, int flag){
+int sender(void* msg, char* source_addVIP, char* dest_addr, uint16_t port, char*dest_addVIP,  int flag, int size_of_payload, int TTL){
 	int sock;
- 	struct sockaddr_in server_addr;
+ 	struct sockaddr_in destination_addr;
  	if ((sock = socket(AF_INET, SOCK_DGRAM/* use UDP */, 0)) < 0) {
  		perror("Create socket error:");
  		return 1;
  	}
  	printf("Socket created\n");
- 	
- 	server_addr.sin_addr.s_addr = inet_addr(dest_addr);
- 	server_addr.sin_family = AF_INET;
- 	server_addr.sin_port = htons(port);
+
+ 	destination_addr.sin_addr.s_addr = inet_addr(dest_addr);
+ 	destination_addr.sin_family = AF_INET;
+ 	destination_addr.sin_port = htons(port);
  
- 	if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+ 	if (connect(sock, (struct sockaddr*)&destination_addr, sizeof(destination_addr)) < 0) {
  		perror("Connect error:");
  		return 1;
  	}
@@ -44,19 +44,18 @@ int sender(void* msg, char*source_add, uint16_t port, char* dest_addr, int flag)
  	void *stream;
  	stream = malloc(MAX_MSG_LENGTH);
 
-	int size_of_payload = 2;
- 	ip_packet ip = ipHeader((char*)msg, source_add, dest_addr, size_of_payload, flag);			//CASTED TO CHAR*
+	// int size_of_payload = 2;
+ 	ip_packet ip = ipHeader((char*)msg, source_addVIP, dest_addVIP, size_of_payload, flag, TTL);			//CASTED TO CHAR*
  	printf("size of IP struct = %lu\n", sizeof(ip));
  	printf("size of stream = %lu\n", sizeof(stream));
  	
  	memcpy(stream, &ip,sizeof(ip));
- 	if(flag==0){					//RIP update
- 		int req_update=0;				//0 - no, 1 - YES
-		memcpy(stream+sizeof(ip), &req_update,sizeof(int));
+ 	if(flag==1|flag==2){					//RIP update	
+		memcpy(stream+sizeof(ip), &flag,sizeof(int));
 		memcpy(stream+sizeof(ip)+sizeof(int), &size_of_payload,sizeof(int));
 		memcpy(stream+sizeof(ip)+(2*sizeof(int)), (void*)msg,sizeof(struct ripUpdate)*size_of_payload);
- 	}else{
- 		memcpy(stream+sizeof(ip)+sizeof(int), (void*)msg,size_of_payload);
+ 	}else if (flag==3){
+ 		memcpy(stream+sizeof(ip), (void*)msg,size_of_payload);
  	}
  	
  	// printf("Stream %s\n", (char*)stream+sizeof(ip));
@@ -67,6 +66,7 @@ int sender(void* msg, char*source_add, uint16_t port, char* dest_addr, int flag)
      }
  	free(stream);
     close(sock);
+    printf("Packet sent\n\n");
     return 0;
  }
 

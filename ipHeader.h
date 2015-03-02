@@ -51,7 +51,7 @@ int ip_sum(char* packet, int n) {
 
 
 
-ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_payload, int flag){
+ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_payload, int flag, int TTL){
 
 	ip_packet ip;						// creating ip Headers
 	ip.ip_header.ip_hl 		= (unsigned int)sizeof(struct ip);				// Stores the last 4 bits only		// ACTUAL SIZE = 20bytes
@@ -65,7 +65,7 @@ ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_pa
 // #define	IP_MF 0x2000			/* more fragments flag */
 // #define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
 	ip.ip_header.ip_p 		= 17; 		// UDP
-	ip.ip_header.ip_ttl		= 16;		// Max Time to live = Infinity
+	ip.ip_header.ip_ttl		= TTL;		// Max Time to live = Infinity
 	ip.ip_header.ip_sum		= ip_sum(payload, (sizeof(struct ip)));
 	inet_aton(src, &ip.ip_header.ip_src);
 	inet_aton(dest, &ip.ip_header.ip_dst);
