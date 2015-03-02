@@ -16,7 +16,7 @@
 typedef struct ip_Packet
 {	
 	struct ip ip_header;
-	char payload [PACKET_LEN];
+	// char payload [PACKET_LEN];
 }ip_packet;
 
 
@@ -26,7 +26,7 @@ typedef struct ip_Packet
  From ping examples in W.Richard Stevens "UNIX NETWORK PROGRAMMING" book.
 ************************************************************/
 
-int ip_sum(char packet[PACKET_LEN], int n) {
+int ip_sum(char* packet, int n) {
   uint16_t *p = (uint16_t*)packet;
   uint16_t answer;
   long sum = 0;
@@ -51,13 +51,13 @@ int ip_sum(char packet[PACKET_LEN], int n) {
 
 
 
-ip_packet ipHeader(char payload[PACKET_LEN], char* src, char* dest){
+ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_payload, int flag){
 
 	ip_packet ip;						// creating ip Headers
 	ip.ip_header.ip_hl 		= (unsigned int)sizeof(struct ip);				// Stores the last 4 bits only		// ACTUAL SIZE = 20bytes
 	ip.ip_header.ip_v 		= 4;		// IPv4
-	ip.ip_header.ip_tos 	= 16;		// Type of Service ????
-	ip.ip_header.ip_len 	=sizeof(struct ip)+sizeof(payload);
+	ip.ip_header.ip_tos 	= flag;		// Type of Service ????
+	ip.ip_header.ip_len 	=sizeof(struct ip)+size_of_payload;
 	ip.ip_header.ip_id 		=0;												//EXTRA CREDIT
 	ip.ip_header.ip_off 	=0;												//EXTRA CREDIT
 // #define	IP_RF 0x8000			/* reserved fragment flag */
@@ -70,7 +70,7 @@ ip_packet ipHeader(char payload[PACKET_LEN], char* src, char* dest){
 	inet_aton(src, &ip.ip_header.ip_src);
 	inet_aton(dest, &ip.ip_header.ip_dst);
 	
-	strcpy(ip.payload, payload);
+	// strcpy(ip.payload, payload);
 
 	printf("IP headr length\t\t- %i\n", ip.ip_header.ip_hl);
 	printf("IP version\t\t- %i\n", ip.ip_header.ip_v);
@@ -84,7 +84,7 @@ ip_packet ipHeader(char payload[PACKET_LEN], char* src, char* dest){
 	printf("IP dest\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_dst));
 	
 
-	printf("LengthOfPayload = %lu\nPayload = %s\n",sizeof(payload),ip.payload);
+	printf("LengthOfPayload = %lu\nPayload = %s\n",size_of_payload, payload);
 	return ip;
 }
 

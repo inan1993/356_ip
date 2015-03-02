@@ -37,8 +37,7 @@ int listening(char * addr, uint16_t port){
 
 
 	char buf [BUFF_SIZE];
-
-	// (void*) vv [BUFF_SIZE];
+	// void* buf = malloc(BUFF_SIZE);
 
 //Code from the internet
 	struct sockaddr_storage src_addr;
@@ -46,22 +45,45 @@ int listening(char * addr, uint16_t port){
 	while(1){
 
 		ssize_t count=recvfrom(sock,&buf,BUFF_SIZE,0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
-		ip_packet ip;		
+		struct sockaddr_in *sin = (struct sockaddr_in*)&src_addr;
+		char *IP = (char*)&sin->sin_addr.s_addr;
+		printf("Source address-----%d.%d.%d.%d\n", IP[0], IP[1], IP[2], IP[3]);
+
+		ip_packet ip;
 		memcpy(&ip,buf,sizeof(ip));
-		
 		// char* msg = (char*)(buf+sizeof(ip));
 
 		if (count==-1) {
 			printf("ERORR %s",strerror(errno));
 		} else if (count==sizeof(buf)) {
 			printf("datagram too large for buffer: truncated\n");
-			printf("count = %zi\n",count);
-			printf("Payload=%hu\n", ip.ip_header.ip_sum);
+			// printf("count = %zi\n",count);
+			// printf("checksum=%hu\n", ip.ip_header.ip_sum);
 		} else {
 			printf("count = %zi \n",count);
-			printf("checksum=%hu\n",ip.ip_header.ip_sum);			// handle_dgram method
-			printf("Bytes - %s\n", (char*)(buf+sizeof(ip)));
+			printf("TOS=%d\n",ip.ip_header.ip_tos);			// handle_dgram method
 			// printf("Payload=%s\n", msg);
+			if(ip.ip_header.ip_tos==0){
+				int req_update;
+				memcpy(&req_update, buf+sizeof(ip),sizeof(int));
+				if(req_update==1){
+					printf("REQUEST FOR UPDATE...\n");
+				}else if(req_update==0){
+					printf("Updating ripTable\n");
+					int sizeof_update;
+					memcpy(&sizeof_update, buf+sizeof(ip)+sizeof(int),sizeof(int));
+					printf("sizeofUPDATE-%d\n",sizeof_update);
+
+					struct ripUpdate* currUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate)*sizeof_update);
+					memcpy(&currUpdate, buf+(sizeof(ip)+2*sizeof(int)),sizeof(struct ripUpdate)*sizeof_update+1);
+
+
+				}
+			}else if(ip.ip_header.ip_tos==1){
+				char* msg;
+				memcpy(&msg, buf+sizeof(ip), ip.ip_header.ip_len-sizeof(struct ip));
+				printf("Datagram - %s\n", (char*)(buf+sizeof(ip)));
+			}
 		}
 	}
 	return 0;

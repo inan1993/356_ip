@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include "parser.h"
+
 struct ripEntry{
         char* destVIP;
         struct interface* nextHop;
@@ -162,12 +164,12 @@ struct ripUpdate* prepareUpdateData(struct ripTable* mainTable, struct interface
 	struct ripEntry* currEntry = mainTable -> ripEntries;
 	struct ripUpdate* currUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate)*getTableLength(mainTable));
 	int counter = 0;
-	printf("\n%d\n", getTableLength(mainTable));
+	printf("\nTable length:%d\n", getTableLength(mainTable));
 	while(currEntry != NULL){
 //		char* temp = malloc(sizeof(char) * 100);
 //		strcpy(temp, currEntry -> destVIP);
 		currUpdate[counter].destVIP = inet_addr(currEntry -> destVIP);
-		currUpdate[counter].cost = currEntry -> cost +currEntry -> nextHop -> upDown +1;
+		currUpdate[counter].cost = currEntry->cost + currEntry->nextHop->upDown +1;
 		currUpdate[counter].sourceVIP = inet_addr(currEntry -> nextHop ->vipSource);
 		printf("dest:%s ", currEntry -> destVIP);	
 		currEntry = currEntry -> next;

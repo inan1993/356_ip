@@ -93,19 +93,19 @@ int main(int argc, char ** argv){
 	pthread_t* listenThread = (pthread_t*) malloc(sizeof(pthread_t));
 	int rc = 0;
 	//Start listening/dealing with updating
-	if(rc = pthread_create(readThread, &attr, reader, (void*)returnData)){
+	if(rc == pthread_create(readThread, &attr, reader, (void*)returnData)){
 		printf("thread creation error %d\n", rc);	
 	}
 	//send initial request for data
-	if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+	if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
 	//triggered updates
-	 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+	 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
 	//Check if threads are expired
-	 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+	 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
 
@@ -170,7 +170,7 @@ while(1){
 		nextHopInfo -> nodePort = nextHop -> rnPort;
 		printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
 		//launch thread to send data -- need to include route data
-		 if(rc = pthread_create(listenThread, &attr, listener,(void*)returnData)){
+		 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
                 printf("thread creation error%d\n", rc);
         }
 	}
