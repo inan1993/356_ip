@@ -74,6 +74,7 @@ void testUpdate(char* dest, int cost, char* source, struct ripUpdate* testUpdate
         
 
     testUpdate -> destVIP =inet_addr(dest);
+    printf("Long------------- %lu\n", inet_addr(dest));
     testUpdate -> cost = cost;
     testUpdate -> sourceVIP = inet_addr(source);
 // 		updateTable(testUpdate,mainTable);

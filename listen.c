@@ -66,16 +66,25 @@ int listening(char * addr, uint16_t port){
 			if(ip.ip_header.ip_tos==0){
 				int req_update;
 				memcpy(&req_update, buf+sizeof(ip),sizeof(int));
-				if(req_update==1){
+				if(req_update==2){
 					printf("REQUEST FOR UPDATE...\n");
-				}else if(req_update==0){
+				}else if(req_update==1){
 					printf("Updating ripTable\n");
 					int sizeof_update;
 					memcpy(&sizeof_update, buf+sizeof(ip)+sizeof(int),sizeof(int));
 					printf("sizeofUPDATE-%d\n",sizeof_update);
 
+					
+					// unsigned long addrsss;
+					// memcpy(&addrsss, buf+(sizeof(ip)+2*sizeof(int)),sizeof(unsigned long));
+					// printf("Long %s\n", addrsss);
 					struct ripUpdate* currUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate)*sizeof_update);
-					memcpy(&currUpdate, buf+(sizeof(ip)+2*sizeof(int)),sizeof(struct ripUpdate)*sizeof_update+1);
+					currUpdate = (struct ripUpdate*)(buf+(sizeof(ip)+2*sizeof(int)));
+
+					printf("DEST - %lu\n",currUpdate[1].destVIP);
+
+					// memcpy(&currUpdate, buf+(sizeof(ip)+2*sizeof(int)),sizeof(struct ripUpdate)*sizeof_update+1);
+
 
 
 				}
