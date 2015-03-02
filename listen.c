@@ -54,17 +54,17 @@ while(1){
 		printf("Source address-----%d.%d.%d.%d\n", IP[0], IP[1], IP[2], IP[3]);
 
 		ip_packet ip;
-		memcpy(&ip,buf,sizeof(ip));
-		printf("\nIP headr length\t\t- %i\n", ip.ip_header.ip_hl);
-		printf("IP version\t\t- %i\n", ip.ip_header.ip_v);
-		printf("IP tos\t\t\t- %i\n", ip.ip_header.ip_tos);
-		printf("IP TTL\t\t\t- %i\n", ip.ip_header.ip_ttl);
-		printf("IP length of packet\t- %i\n", ip.ip_header.ip_len);
-		printf("IP protocol\t\t- %i\n\n", ip.ip_header.ip_p);
-		printf("IP checksum\t\t- %i\n\n", ip.ip_header.ip_sum);
+		// memcpy(&ip,buf,sizeof(ip));
+		// printf("\nIP headr length\t\t- %i\n", ip.ip_header.ip_hl);
+		// printf("IP version\t\t- %i\n", ip.ip_header.ip_v);
+		// printf("IP tos\t\t\t- %i\n", ip.ip_header.ip_tos);
+		// printf("IP TTL\t\t\t- %i\n", ip.ip_header.ip_ttl);
+		// printf("IP length of packet\t- %i\n", ip.ip_header.ip_len);
+		// printf("IP protocol\t\t- %i\n\n", ip.ip_header.ip_p);
+		// printf("IP checksum\t\t- %i\n\n", ip.ip_header.ip_sum);
 
-		printf("IP src\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_src));
-		printf("IP dest\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_dst));
+		// printf("IP src\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_src));
+		// printf("IP dest\t\t- %s\n\n", inet_ntoa(ip.ip_header.ip_dst));
 
 		// char* msg = (char*)(buf+sizeof(ip));
 

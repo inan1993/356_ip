@@ -10,7 +10,7 @@
 #include <netinet/ip.h>
 // #include <net/ip.h>
 #include <inttypes.h>
-#define PACKET_LEN 140					//????
+// #define PACKET_LEN 140					
 
 
 typedef struct ip_Packet
