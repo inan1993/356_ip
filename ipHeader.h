@@ -71,7 +71,7 @@ ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_pa
 	inet_aton(dest, &ip.ip_header.ip_dst);
 	
 	// strcpy(ip.payload, payload);
-
+/*
 	printf("IP headr length\t\t- %i\n", ip.ip_header.ip_hl);
 	printf("IP version\t\t- %i\n", ip.ip_header.ip_v);
 	printf("IP tos\t\t\t- %i\n", ip.ip_header.ip_tos);
@@ -85,7 +85,7 @@ ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_pa
 	
 
 	printf("LengthOfPayload = %lu\nPayload = %s\n",size_of_payload, payload);
-	return ip;
+	*/return ip;
 }
 
 

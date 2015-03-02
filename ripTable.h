@@ -187,7 +187,7 @@ void* prepareUpdateData(struct ripTable* mainTable, struct interface* receiverIn
 //		char* temp = malloc(sizeof(char) * 100);
 //		strcpy(temp, currEntry -> destVIP);
 		if(currEntry -> nextHop == receiverInt){
-			printf("Reverse Poison Update\n");
+//			printf("Reverse Poison Update\n");
 			currUpdate[counter].cost = 17;
 		}
 		else{
@@ -201,7 +201,7 @@ void* prepareUpdateData(struct ripTable* mainTable, struct interface* receiverIn
 //		printf("destIP: %s, cost: %d, sourceIP: %s \n",addrToString(currUpdate[counter].destVIP), currUpdate[counter].cost, addrToString(currUpdate[counter].sourceVIP));
 		counter ++;
 	}
-	printf("\n-----End of Creating Update Array-----\n");
+//	printf("\n-----End of Creating Update Array-----\n");
 
 	return buffer;
 	

@@ -8,20 +8,32 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
-#include "parser.h"
-#include "ripTable.h"
-struct listen{
-	struct ripTable* mainTable;
-};
-struct triggered{
-	struct ripTable* mainTable;
-};
-struct user{
-	struct ripTable* mainTable;
-	int ttl;
-	struct sendData* buffer;
-	char * destVIP;
-};
+#ifndef RIPTABLE_H
+	#define RIPTABLE_H
+	#include "ripTable.h"
+#endif
+
+//#include "ripTable.h"	
+#ifndef SEND_H
+	#define SEND_H
+	#include"send.h"
+#endif
+#ifndef LISTEN_H
+	#define LISTEN_H
+	#include "listen.h"
+#endif
+//struct listen{
+//	struct ripTable* mainTable;
+//};
+//struct triggered{
+//	struct ripTable* mainTable;
+//};
+//struct user{
+//	struct ripTable* mainTable;
+//	int ttl;
+//	struct sendData* buffer;
+//	char * destVIP;
+//};
 void* triggeredUpdates(void* data){
 	struct ripTable* mainTable = (struct ripTable*)data;
 	while(1){
@@ -29,13 +41,14 @@ void* triggeredUpdates(void* data){
 		while(currInt != NULL){
 			if(currInt -> upDown == 0){
 				struct sendData* info = prepareUpdateData(mainTable, currInt);
-//				send((void*)info -> buffer, init -> mainTable -> mainNode -> nodeAddr, init -> mainTable -> mainNode -> nodePort, interface -> rnAddr, interface -> rnPort);
-//				printf("sent data \n");
+				sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, info -> flag, info -> size, 15);
+
+				printf("sent data \n");
 			}
 			currInt = currInt -> next;
-			sleep(5);
 //			printf("woke uP!");
 		}
+		;sleep(5);
 	}
 }
 
@@ -45,8 +58,8 @@ void* sendUpdate(void* data){
 	 while(currInt != NULL){
                         if(currInt -> upDown == 0){
                                 struct sendData* info = prepareUpdateData(init, currInt);
-  //                              send((void*)info -> buffer,currInt -> vipSource, interface -> rnAddr, interface -> rnPort, interface -> vipDest, sendData -> flag, sendData -> size, 15);
-                                printf(" sent data\n");
+                                sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, info -> flag, info -> size, 15);
+                                printf(" sent update!\n");
                         }
                         currInt = currInt -> next;
 }
@@ -54,6 +67,7 @@ void* sendUpdate(void* data){
 //void(struct ripTable*, char* destVIP){}
 void* listeningThread(void* data){
 	struct ripTable* table = (struct ripTable*)data;
+	listening(table -> mainNode -> nodeAddr, table -> mainNode -> nodePort, table);
 	printf("I'm listening \n");	
 }
 //could be combined with  triggered updates
@@ -63,10 +77,10 @@ void* checkTimeout(void* data){
 	while(1){
 		currEntry = mainTable -> ripEntries;
 			while(currEntry != NULL){
-					if(currEntry -> updateTime > 11){
+					if(currEntry -> updateTime > 11 && currEntry -> cost < 16){
 						currEntry -> cost = 17;
 						currEntry -> updateTime = 0;
-						printf("Route down!");
+						printf("Route down! \n");
 					}
 					else{
 						currEntry -> updateTime ++;
@@ -82,6 +96,7 @@ void* sendUserData(void* data){
 	struct user* init = (struct user*)data;
 	char* destVIP = init -> destVIP;
 	struct interface* currInt = init -> mainTable -> intList;
+	struct sendData* info = init -> buffer;
 	while(currInt != NULL){
 		if(addrToNumber(currInt -> vipSource) == addrToNumber(destVIP)){
 			printf("Sent Data: %s \n", init -> buffer -> buffer);
@@ -92,7 +107,8 @@ void* sendUserData(void* data){
 	struct interface* route =  getRouteByDestVIP(destVIP,init ->  mainTable);
 	//decrement TTL
 //        send((void*)init -> buffer, init -> mainTable -> mainNode -> nodeAddr, interface -> rnPort, interface -> vipDest, sendData -> flag, sendData -> size, destVIP);
-        printf("sent user data %s \n", init->buffer->buffer);
+	sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, info -> flag, info -> size, 15);   
+     printf("sent user data %s \n", init->buffer->buffer);
 }
 
 void* sendDataRequest(void* data){

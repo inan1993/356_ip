@@ -12,15 +12,6 @@
 #define THREADMETHODS_H
 #include "threadMethods.h"
 #endif
-
-#ifndef THREADMETHODS_H
-#define THREADMETHODS_H
-//#include "send.h"
-#endif
-#ifndef LIS
-#define LIS
-//#include "listen.h"
-#endif
 //#include "listen.h"
 //uint16_t command;
 //uint16_t num_entries;
