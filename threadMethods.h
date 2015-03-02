@@ -10,7 +10,19 @@
 #include <stdbool.h>
 #include "parser.h"
 #include "ripTable.h"
-
+struct listen{
+	struct ripTable* mainTable;
+};
+struct triggered{
+	struct ripTable* mainTable;
+};
+struct update{
+	struct ripTable* mainTable;
+	struct ripUpdate* upList;
+	struct interface* currInt;
+};
+struct 
+struct
 void* triggeredUpdates(void* data){
 	something = ripTable mainTable;
 	struct interface* currInt = mainTable -> interfaces;
@@ -18,16 +30,17 @@ void* triggeredUpdates(void* data){
 		while(currInt != NULL){
 			struct ripUpdate* = prepareUpdateData(mainTable, currInt);
 			//send prepared data;
+			printf("sent data");
 			currInt = currInt -> next;
+			sleep(5);
 		}
-		sleep(5);
 	}
 }
 
 void* sendUpdate(void* data){
 	while(currInt != NULL){
 		struct ripUpdate* = prepareUpdateData(mainTable, currInt);
-	//send prepared data;
+		//send these updates
 		currInt = currInt -> next;
 	}
 }
@@ -44,6 +57,6 @@ void* sendUserData(void* data){
 
 }
 
-void* sendDataRequest(){
-
+void* sendDataRequest(void* data){
+	
 }

@@ -17,7 +17,6 @@
 //uint32_t cost;
 //uint32_t address;
 //} entries[num_entries];
-
 struct threadInit{
 	struct nodeInfo mainNode;
 	struct ripTable* mainTable;	
@@ -25,9 +24,9 @@ struct threadInit{
 void testUpdate(char* dest, int cost, char* source, struct ripTable* mainTable){
         struct ripUpdate* testUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate));
 
-        testUpdate -> destVIP =inet_addr(dest);
+        testUpdate -> destVIP =addrToNumber(dest);
         testUpdate -> cost = cost;
-        testUpdate -> sourceVIP = inet_addr(source);
+        testUpdate -> sourceVIP = addrToNumber(source);
         updateTable(testUpdate,mainTable);
 //      printTable(mainTable);
 }
@@ -60,32 +59,33 @@ void* listener(void* data){
 	printf("Listener thread run \n");
 	return NULL;
 }
-char* getThirdArg(char* string, char delimiter){
+int getThirdArg(char* string, char delimiter, char* thirdArg){
 	int i = 0;
 	int count = 0;
+	int index = 0;
+	int length = 0;
 	while(string[i] != '\0'){
-		if(string [i] == delimiter){
+		if(string [i] == delimiter && count < 2){
 			count ++;
+			index = i;
 		}
 		if(count >= 2){
-			return &string[i];
+			
+			length ++;
 		}
 		i++;
 	}
-	return string;
+	thirdArg = &string[index];
+	printf("thirdArg:  %s:%p: \n",thirdArg, thirdArg);
+	return length;
 }
 int main(int argc, char ** argv){
 	struct returnInfo* returnData = parser(argc, argv);
 	struct ripTable* mainTable =(struct ripTable*) malloc(sizeof(ripTable));
 	initializeTable(returnData -> mainNode, returnData -> interfaceList, mainTable);
 	printTable(mainTable);
-	printf("\n %d \n", getTableLength(mainTable));
-	testUpdate("10.10.10.10",1,"168" , mainTable);
-//	printf("PLEASE work: %lu", (inet_addr("10.10.10.10")).s_addr);
-//	printTable(mainTable);	
-	printf("\n %d \n", getTableLength(mainTable));
+	testUpdate("10.10.10.10",1,"0.0.0.168" , mainTable);
 	prepareUpdateData(mainTable, mainTable -> intList);
-	printf("\n %d \n", getTableLength(mainTable));
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -153,7 +153,7 @@ while(1){
                         currInt = currInt -> next;
                 }
                 currInt -> upDown = 16;
-		//Need to launch thread to notify others about it being down
+	//Need to launch thread to notify others about it being down
 	//	struct ripUpdate* update = updateFromInterface(currInt, -1);
 	//	updateLocally(currInt, 16, mainTable);
 		printf("Node %d down!\n", arg);
@@ -162,19 +162,26 @@ while(1){
 	if(!strcmp(command, "send")){
 //		printf("origBuffer %s \n", origBuffer);
 		char* ipString = firstArgument;
-		char* messagePayload = getThirdArg(origBuffer, ' ');
-		printf("payload:%s \n", messagePayload);
+		struct sendData* payload = (struct sendData*)(malloc(sizeof(char)*256 + sizeof(int)*2));	
+		int size = getThirdArg(origBuffer, ' ', payload -> buffer);
+		printf("size: %p \n", payload -> buffer);	
+	//void* buffer = malloc(sizeof(char) * size+sizeof(int));
+		payload -> size = size;
+		payload -> flag = 3;
 		struct interface* nextHop = getRouteByDestVIP(ipString,mainTable);
+		printf("made it past that...");
 		struct nodeInfo* nextHopInfo = (struct nodeInfo*)malloc(sizeof(struct nodeInfo));
 		nextHopInfo -> nodeAddr = nextHop -> rnAddr;
 		nextHopInfo -> nodePort = nextHop -> rnPort;
 		printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
 		//launch thread to send data -- need to include route data
+
 		 if(rc == pthread_create(listenThread, &attr, listener,(void*)returnData)){
+
                 printf("thread creation error%d\n", rc);
         }
+	printf("-->");
 	}
-
 }
 
 
