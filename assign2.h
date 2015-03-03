@@ -104,7 +104,7 @@ int main(int argc, char ** argv){
 		printf("thread creation error %d\n", rc);	
 	}
 //	send initial request for data
-	if(rc = pthread_create(updateThread, &attr, sendUpdate,(void*)mainTable)){
+	if(rc = pthread_create(updateThread, &attr, sendDataRequest,(void*)mainTable)){
                 printf("thread creation error%d\n", rc);
         }
 	//triggered updates
@@ -112,9 +112,9 @@ int main(int argc, char ** argv){
                printf("thread creation error%d\n", rc);
  	    }
 	//Check if threads are expired
-	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
-               printf("thread creation error%d\n", rc);
-          }
+//	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
+  //             printf("thread creation error%d\n", rc);
+    //      }
 
 
 char buffer[256];

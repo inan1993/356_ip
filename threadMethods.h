@@ -40,11 +40,11 @@ void* triggeredUpdates(void* data){
 	struct interface* currInt = mainTable -> intList;
 		while(currInt != NULL){
 			if(currInt -> upDown == 0){
-				struct sendData* info = prepareUpdateData(mainTable, currInt);
+				struct sendData* info = prepareUpdateData(mainTable, currInt, 1);
 				printf("conn Port: %d, srcVIP: %s, destVIP: %s \n", currInt ->rnPort, currInt -> vipSource, currInt -> vipDest);
 				sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 1, info -> size, 15);
 
-				printf("sent data \n");
+//				printf("sent data \n");
 			}
 			currInt = currInt -> next;
 //			printf("woke uP!");
@@ -58,9 +58,9 @@ void* sendUpdate(void* data){
 	 struct interface * currInt = init -> intList;
 	 while(currInt != NULL){
                         if(currInt -> upDown == 0){
-                                struct sendData* info = prepareUpdateData(init, currInt);
+                                struct sendData* info = prepareUpdateData(init, currInt, 0);
                                 sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, info -> flag, info -> size, 15);
-                                printf(" sent update!\n");
+  //                              printf(" sent update!\n");
                         }
                         currInt = currInt -> next;
 }
@@ -79,12 +79,15 @@ void* checkTimeout(void* data){
 		currEntry = mainTable -> ripEntries;
 			while(currEntry != NULL){
 					if(currEntry -> updateTime > 11){
-						currEntry -> cost = 17;
-						currEntry -> updateTime = 0;
-						printf("Route down! \n");
+						currEntry -> cost = 42;
+						//currEntry -> updateTime = 0;
+						currEntry -> updateTime ++;
 					}
 					else{
 						currEntry -> updateTime ++;
+					}
+					if(currEntry -> updateTime == 12){
+						printf("route down! \n");
 					}
 				currEntry = currEntry -> next;
 			}
@@ -117,9 +120,13 @@ void* sendDataRequest(void* data){
 	struct interface* currInt = mainTable -> intList; 
 	while(currInt != NULL){
                         if(currInt -> upDown == 0){
-                                struct sendData* info = prepareUpdateData(mainTable, currInt);
-                               // send((void*)"Request", currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 2, 10, currInt -> vipDest);
-                                printf("sent data request \n");
+                                struct sendData* info = prepareUpdateData(mainTable, currInt, 0);
+				printf("sent data request! \n");
+                        	 sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 2, 40, 15);
+ 
+//			       send((void*)"Request", currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 2, 10, currInt -> vipDest);
+                                currInt = currInt -> next;
+				printf("sent data request \n");
                         }
 
 }

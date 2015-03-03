@@ -113,17 +113,17 @@ int main(int argc, char ** argv){
 		printf("thread creation error %d\n", rc);	
 	}
 //	send initial request for data
-//	if(rc = pthread_create(updateThread, &attr, sendUpdate,(void*)mainTable)){
-  //              printf("thread creation error%d\n", rc);
-    //    }
+//	if(rc = pthread_create(updateThread, &attr, sendDataRequest,(void*)mainTable)){
+//            printf("thread creation error%d\n", rc);
+//    }
 	//triggered updates
 	 if(rc = pthread_create(listenThread, &attr, listeningThread, (void*)mainTable)){
                printf("thread creation error%d\n", rc);
 	    }
-	//Check if threads are expired
-	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
-              printf("thread creation error%d\n", rc);
-          }
+//	Check if threads are expired
+//	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
+//             printf("thread creation error%d\n", rc);
+  //       }
 
 
 char buffer[256];
@@ -135,11 +135,20 @@ while(1){
 	char* command = strtok(buffer, " ");
 	char* firstArgument = strtok(NULL, " "); 
 //	printf("command %s %d end \n", buffer, strcmp(command, "ifconfig"));
+	if(!strcmp(origBuffer, "update\n")){
+		 pthread_t* tempThread = (pthread_t*) malloc(sizeof(pthread_t));
+	        int rc = 0;
+        	//Start listening/dealing with updating
+      		if(rc = pthread_create(tempThread, &attr, sendUpdate, (void*)mainTable)){
+              	printf("thread creation error %d\n", rc);       
+      }
+	
+	}
 	if(!strcmp(origBuffer, "ifconfig\n")){
 		struct interface* currInt = returnData -> interfaceList;
 		while(currInt != NULL){
 			printf("%d \t %s \t", currInt -> interId, currInt -> vipSource);
-			if(currInt -> upDown) printf("up");
+			if(currInt -> upDown == 0) printf("up");
 			else printf("down");
 			currInt = currInt -> next;
 			printf("\n");
@@ -156,6 +165,13 @@ while(1){
 			currInt = currInt -> next;
 		}
 		currInt -> upDown = 0;
+		 pthread_t* upThread = (pthread_t*) malloc(sizeof(pthread_t));
+                         int rc = 0;
+        //Start listening/dealing with updating
+                if(rc = pthread_create(upThread, &attr, sendUpdate, (void*)mainTable)){
+                	printf("thread creation error %d\n", rc);
+        	}
+
 	//	struct ripUpdate* update = updateFromInterface(currInt, 1);
 	//	updateTable(update, mainTable);
 		printf("Node %d up!\n", arg);

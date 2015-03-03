@@ -49,6 +49,7 @@ socklen_t src_addr_len=sizeof(src_addr);
 while(1){
 
 		ssize_t count=recvfrom(sock,&buf,BUFF_SIZE,0,(struct sockaddr*)&src_addr,&src_addr_len);  // return number of bytes received
+		printf("received \n");
 		struct sockaddr_in *sin = (struct sockaddr_in*)&src_addr;
 		char *IP = (char*)&sin->sin_addr.s_addr;
 		printf("Source address-----%d.%d.%d.%d\n", IP[0], IP[1], IP[2], IP[3]);
@@ -88,16 +89,17 @@ while(1){
 				char* stream;
 				stream = (char*)(buf+sizeof(ip)+(2*sizeof(int)));
 				int checksum = ip_sum(stream,(sizeof(struct ip)));
-				if(checksum == ip.ip_header.ip_sum){printf("Checksum match: %d\n",checksum);}else{continue;}
-
+//				if(checksum == ip.ip_header.ip_sum){printf("Checksum match: %d\n",checksum);}else{continue;}
+//				printf("%d________ %d", checksum, ip.ip_header.ip_sum);
 
 				int req_update;
 				memcpy(&req_update, buf+sizeof(ip),sizeof(int));
+				printf("reqUpdate: %d \n", req_update);
 				if(req_update==2){								// 2 = REQUEST for UPDATE
 					printf("Request for Update\n");
 					struct interface* intOfDest = getInterfaceFromNextHopVIP(mainTable, src_VIP);
 					// New Array of RIP_Updates
-					void* msg = prepareUpdateData(mainTable, intOfDest/*getInterfaceFromNextHopVIP(mainTable, src_VIP)*/);
+					void* msg = prepareUpdateData(mainTable, intOfDest, 0/*getInterfaceFromNextHopVIP(mainTable, src_VIP)*/);
 
 					if(sender(msg, my_VIP, intOfDest->rnAddr,intOfDest->rnPort, src_VIP, 1, getTableLength(mainTable),16)!=0){
 						printf("ERROR sending the requested update.\n");
@@ -168,9 +170,9 @@ while(1){
 	return 0;
 }
 
-int main(int argc, char ** argv){
-	char *listen_on = "127.0.0.1";
-	uint16_t port = 1700;
-	struct ripTable* mainTable;
-	int c = listening(listen_on, port, mainTable);
-}
+// int main(int argc, char ** argv){
+// 	char *listen_on = "127.0.0.1";
+// 	uint16_t port = 1700;
+// 	struct ripTable* mainTable;
+// 	int c = listening(listen_on, port, mainTable);
+// }
