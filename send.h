@@ -29,6 +29,7 @@
 
 int sender(void* msg, char*source_addVIP, char* dest_addr, uint16_t port, char*dest_addVIP,  int flag, int size_of_payload, int TTL){
 	int sock;
+//	printf("the flag %d \n", flag);
  	struct sockaddr_in destination_addr;
  	if ((sock = socket(AF_INET, SOCK_DGRAM/* use UDP */, 0)) < 0) {
  		perror("Create socket error:");
@@ -60,14 +61,16 @@ int sender(void* msg, char*source_addVIP, char* dest_addr, uint16_t port, char*d
 		memcpy(stream+sizeof(ip), &flag,sizeof(int));
 		memcpy(stream+sizeof(ip)+sizeof(int), &size_of_payload,sizeof(int));
 		memcpy(stream+sizeof(ip)+(2*sizeof(int)), (void*)msg,sizeof(struct ripUpdate)*size_of_payload);
+//	printf("just checkin: %d", flag);
  	}else if (flag==3){
  		memcpy(stream+sizeof(ip), (void*)msg,size_of_payload);
  	}
  	
  //	 printf("Stream %s\n", (char*)stream+sizeof(ip));
- 
+//    printf("sent %s to port %d \n",source_addVIP, port ); 
      if (sendto(sock, (void*)stream , MAX_MSG_LENGTH, 0,0,0) < 0) {
-     	perror("Send error:\n");
+     	printf("semt \n");
+	perror("Send error:\n");
      	return 1;
      }
  	free(stream);
