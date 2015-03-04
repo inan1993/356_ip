@@ -35,7 +35,7 @@ struct sendData{
 	int flag;
 	char buffer[];
 };
-
+int printVal = 0;
 char* addrToString(unsigned long updateAddr){
 	char* tempy = malloc(sizeof(char) * 100);
 	struct in_addr* addr1 =(struct in_addr*) malloc(sizeof(struct in_addr));
@@ -142,8 +142,10 @@ int destInNode(struct ripTable* mainTable, char* dest){
 	struct interface* currInt = mainTable -> intList;
 //	printf("%s \n", dest);
 	while(currInt ->next != NULL){
-	currInt = currInt -> next;
-		if(strcmp(currInt -> vipSource, dest) ){
+		currInt = currInt -> next;
+	//	printf("Dest: %s  Node: %s \n", currInt -> vipSource, dest);
+		if(addrToNumber(currInt -> vipSource) ==addrToNumber( dest) ){
+	//		printf("in if\n");
 			return 1;
 		}
 	}
@@ -151,16 +153,22 @@ int destInNode(struct ripTable* mainTable, char* dest){
 }
 void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 	struct ripEntry* currEntry = mainTable -> ripEntries;
-//	printf("ID received: %s from %s with cost: %d at \n", addrToString(update -> destVIP), addrToString(update -> sourceVIP),update -> cost);
+if(printVal)	printf("ID received: %s from %s with cost: %d at \n", addrToString(update -> destVIP), addrToString(update -> sourceVIP),update -> cost);
+	int costOffset = 1;
 	while(currEntry != NULL){
 //		if(currEntry -> destVIP is on node && currEntry-> sourceVIP is on node){continue;}
-	if(destInNode(mainTable, addrToString(update -> destVIP))){continue;}
+	if(destInNode(mainTable, addrToString(update -> destVIP))){
+		currEntry -> cost = 0;
+		costOffset = 0;
+//		currEntry = currEntry -> next;
+//		continue;
+	}
 		if(!strcmp(addrToString(update -> destVIP), currEntry -> destVIP)){
 			if(!strcmp(addrToString(update -> sourceVIP), currEntry -> sourceVIP)){
 				if(update -> cost < 100)
 					currEntry -> updateTime = 0;
 				if(update-> cost < 16 ){
-					currEntry -> cost = update -> cost;
+					currEntry -> cost = update -> cost * costOffset;
 				}
 				return;
 			}
@@ -171,13 +179,14 @@ void updateTable(struct ripUpdate* update, struct ripTable* mainTable){
 			else{
 				currEntry -> updateTime = 0;
 				currEntry -> sourceVIP  = addrToString(update -> sourceVIP);
-				currEntry -> cost = update -> cost + currEntry -> nextHop -> upDown;
+				currEntry -> cost = (update -> cost + currEntry -> nextHop -> upDown)*costOffset;
 				currEntry -> nextHop = getInterfaceFromNextHopVIP(mainTable,addrToString( update -> sourceVIP));
 				return;
 			}
 			
 		}
 		}
+		
 		if(currEntry -> next == NULL){
 			if(update -> cost == -1){ return;}
 			break;

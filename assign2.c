@@ -50,7 +50,7 @@ void printTable(struct ripTable* table){
 	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
 	struct ripEntry* currEntry = table ->ripEntries;
 	while(currEntry != NULL){
-		printf("Destination: %s  VIP: %s time: %d \n",currEntry -> destVIP, currEntry -> nextHop -> vipSource, currEntry -> updateTime);
+		printf("Destination: %s  VIP: %s time: %d \n",currEntry -> destVIP, currEntry -> nextHop -> vipDest, currEntry -> updateTime);
 		printf("Cost %d\n", currEntry -> cost + currEntry -> nextHop -> upDown);
 		currEntry = currEntry -> next;
 	}
@@ -137,7 +137,10 @@ while(1){
       		if(rc = pthread_create(tempThread, &attr, sendUpdate, (void*)mainTable)){
               	printf("thread creation error %d\n", rc);       
       }
-	
+		
+	}
+	if(!strcmp(origBuffer, "print\n")){
+		printVal = !printVal;
 	}
 	if(!strcmp(origBuffer, "ifconfig\n")){
 		struct interface* currInt = returnData -> interfaceList;
