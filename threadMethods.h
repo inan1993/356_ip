@@ -41,7 +41,7 @@ void* triggeredUpdates(void* data){
 		while(currInt != NULL){
 			if(currInt -> upDown == 0){
 				struct sendData* info = prepareUpdateData(mainTable, currInt, 1);
-				printf("conn Port: %d, srcVIP: %s, destVIP: %s \n", currInt ->rnPort, currInt -> vipSource, currInt -> vipDest);
+			//	printf("conn Port: %d, srcVIP: %s, destVIP: %s \n", currInt ->rnPort, currInt -> vipSource, currInt -> vipDest);
 				sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 1, info -> size, 15);
 
 //				printf("sent data \n");

@@ -50,7 +50,7 @@ void printTable(struct ripTable* table){
 	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
 	struct ripEntry* currEntry = table ->ripEntries;
 	while(currEntry != NULL){
-		printf("Destination: %s NextHopAddr: %s:%d VIP: %s time: %d \n",currEntry -> destVIP, currEntry -> nextHop -> rnAddr, currEntry -> nextHop -> rnPort, currEntry -> nextHop -> vipSource, currEntry -> updateTime);
+		printf("Destination: %s  VIP: %s time: %d \n",currEntry -> destVIP, currEntry -> nextHop -> vipSource, currEntry -> updateTime);
 		printf("Cost %d\n", currEntry -> cost + currEntry -> nextHop -> upDown);
 		currEntry = currEntry -> next;
 	}
@@ -112,18 +112,16 @@ int main(int argc, char ** argv){
 	if(rc = pthread_create(periodicThread, &attr, triggeredUpdates, (void*)mainTable)){
 		printf("thread creation error %d\n", rc);	
 	}
-//	send initial request for data
-//	if(rc = pthread_create(updateThread, &attr, sendDataRequest,(void*)mainTable)){
-//            printf("thread creation error%d\n", rc);
-//    }
+	if(rc = pthread_create(updateThread, &attr, sendDataRequest,(void*)mainTable)){
+            printf("thread creation error%d\n", rc);
+    }
 	//triggered updates
 	 if(rc = pthread_create(listenThread, &attr, listeningThread, (void*)mainTable)){
                printf("thread creation error%d\n", rc);
 	    }
-//	Check if threads are expired
-//	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
-//             printf("thread creation error%d\n", rc);
-  //       }
+	 if(rc = pthread_create(timeoutThread, &attr, checkTimeout,(void*)mainTable)){
+             printf("thread creation error%d\n", rc);
+       }
 
 
 char buffer[256];
@@ -131,14 +129,11 @@ while(1){
 	char * origBuffer = malloc(sizeof(char) * 256);
 	fgets( buffer, 256, stdin);
 	strcpy(origBuffer, buffer);
-//	printf("buffer %s", buffer);
 	char* command = strtok(buffer, " ");
 	char* firstArgument = strtok(NULL, " "); 
-//	printf("command %s %d end \n", buffer, strcmp(command, "ifconfig"));
 	if(!strcmp(origBuffer, "update\n")){
 		 pthread_t* tempThread = (pthread_t*) malloc(sizeof(pthread_t));
 	        int rc = 0;
-        	//Start listening/dealing with updating
       		if(rc = pthread_create(tempThread, &attr, sendUpdate, (void*)mainTable)){
               	printf("thread creation error %d\n", rc);       
       }
@@ -155,7 +150,6 @@ while(1){
 		}		
 	}
 	if(!strcmp(origBuffer, "routes\n")){printTable(mainTable);}
-//	printf("firstArg %s \n",firstArgument);
 	 if(!strcmp(command,"up")){
 		int i = 0;
 		int arg = atoi(firstArgument);
@@ -167,13 +161,10 @@ while(1){
 		currInt -> upDown = 0;
 		 pthread_t* upThread = (pthread_t*) malloc(sizeof(pthread_t));
                          int rc = 0;
-        //Start listening/dealing with updating
                 if(rc = pthread_create(upThread, &attr, sendUpdate, (void*)mainTable)){
                 	printf("thread creation error %d\n", rc);
         	}
 
-	//	struct ripUpdate* update = updateFromInterface(currInt, 1);
-	//	updateTable(update, mainTable);
 		printf("Node %d up!\n", arg);
 	}
 	if(!strcmp(command,"down")){
@@ -181,23 +172,18 @@ while(1){
                 int arg = atoi(firstArgument);
                 struct interface* currInt = returnData -> interfaceList;
 		for(i = 0; i <arg-1; i ++){
-			if(currInt -> next == NULL) printf("Node doesn't exist!");
+		if(currInt -> next == NULL) printf("Node doesn't exist!");
                         currInt = currInt -> next;
                 }
                 currInt -> upDown = 100;
 		pthread_t* downThread = (pthread_t*) malloc(sizeof(pthread_t));
        			 int rc = 0;
-        //Start listening/dealing with updating
        		if(rc = pthread_create(downThread, &attr, sendUpdate, (void*)mainTable)){
                 printf("thread creation error %d\n", rc);
         }
 
-	//Need to launch thread to notify others about it being down
 		
-	//	struct ripUpdate* update = updateFromInterface(currInt, -1);
-	//	updateLocally(currInt, 16, mainTable);
 		printf("Node %d down!\n", arg);
-	//	prepareUpdateData(mainTable, mainTable -> intList);
 	}
 	if(!strcmp(command, "send")){
 //		printf("origBuffer %s \n", origBuffer);
