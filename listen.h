@@ -23,29 +23,56 @@
 //} entries[num_entries];
 
 #define BUFF_SIZE 1401
-struct user{
+struct userCopy{
         struct ripTable* mainTable;
         int ttl;
-        struct sendData* buffer;
+        // struct sendData* buffer;
         char * destVIP;
+        int size;
+		int flag;
+        char buffer[];
 };
+
+
+// struct interface{
+// 	int interId;
+// 	char* rnAddr;
+// 	int rnPort;
+// 	char * vipSource;
+// 	char * vipDest;
+// 	int upDown;
+// 	struct interface* next;
+// 	struct interface* prev;
+// }interface;
+
+// struct sendData{
+// 	int size;
+// 	int flag;
+// 	char buffer[];
+// };
+
 void* sendUserDataCopy(void* data){
-        struct user* init = (struct user*)data;
-        char* destVIP = init -> destVIP;
-        struct interface* currInt = init -> mainTable -> intList;
-        struct sendData* info = init -> buffer;
-        while(currInt != NULL){
-                if(addrToNumber(currInt -> vipSource) == addrToNumber(destVIP)){
-                        printf("Sent Data: %s \n", init -> buffer -> buffer);
-                        return;
-                }
-                currInt = currInt -> next;
-        }
-        struct interface* route =  getRouteByDestVIP(destVIP,init ->  mainTable);
-        //decrement TTL
-//        send((void*)init -> buffer, init -> mainTable -> mainNode -> nodeAddr, interface -> rnPort, interface -> vipDest, sendData -> flag, sendData -> size, destVIP);
-        sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, info -> flag, info -> size, 15);
-     printf("sent user data %s \n", init->buffer->buffer);
+    struct userCopy* init = (struct userCopy*)data;
+    char* destVIP = init -> destVIP;
+    struct interface* currInt = init -> mainTable -> intList;
+    int TTL = init -> ttl;
+    while(currInt != NULL){
+            if(addrToNumber(currInt -> vipSource) == addrToNumber(destVIP)){
+                    printf("\n\nReceived Data: %s\n\n", init->buffer);
+                    return data;
+            }
+            currInt = currInt -> next;
+    }
+    if(TTL<=1){
+    	printf("TTL is over. Packet Dropped!!!\n");
+    	return data;
+    }
+    struct interface* route =  getRouteByDestVIP(destVIP,init->mainTable);
+    printf("Found next Hop!! - %s\n", route);
+
+  	sender((void*)(init -> buffer),route->vipSource, route->rnAddr, route -> rnPort, destVIP, init -> flag,init -> size, TTL-1);
+    // printf("sent user data %s --\n", init->buffer);
+    return data;
 }
 
 int listening(char * addr, uint16_t port, struct ripTable* mainTable){
@@ -116,7 +143,7 @@ int listening(char * addr, uint16_t port, struct ripTable* mainTable){
 				char* stream;
 				stream = (char*)(buf+sizeof(ip)+(2*sizeof(int)));
 				int checksum = ip_sum(stream,(sizeof(struct ip)));
-//				if(checksum == ip.ip_header.ip_sum){printf("Checksum match: %d\n",checksum);}else{continue;}
+				if(checksum == ip.ip_header.ip_sum){printf(/*"Checksum match: %d\n",checksum*/);}else{printf("Checksum match: %d\n",checksum);continue;}
 //				printf("%d________ %d", checksum, ip.ip_header.ip_sum);
 
 				int req_update;
@@ -131,22 +158,18 @@ int listening(char * addr, uint16_t port, struct ripTable* mainTable){
 					if(sender(msg, my_VIP, intOfDest->rnAddr,intOfDest->rnPort, src_VIP, 1, getTableLength(mainTable),16)!=0){
 						printf("ERROR sending the requested update.\n");
 					}
-//					printf("Update Sent\n");
 
 				}else if(req_update==1){					// 1 = RECEIVING UPDATE
-//					printf("Updating ripTable\n");
 					int sizeof_update;
 					memcpy(&sizeof_update, buf+sizeof(ip)+sizeof(int),sizeof(int));
-//					printf("sizeofUPDATE-%d\n",sizeof_update);
 					struct ripUpdate* currUpdate = (struct ripUpdate*)malloc(sizeof(struct ripUpdate)*sizeof_update);
 					currUpdate = (struct ripUpdate*)(buf+(sizeof(ip)+2*sizeof(int)));
-				// printf("DEST - %lu\n",currUpdate[1].destVIP);
+
 					// Updating table with each ripUpdate
 						int i = 0;
 						for ( i=0; i<sizeof_update;i++){
-//						printf("Update no.-%d\n", i+1);
 						updateTable(&currUpdate[i], mainTable);
-					}
+						}
 
 							// int sizeof_update;
 							// memcpy(&sizeof_update, buf+sizeof(ip)+sizeof(int),sizeof(int));
@@ -162,26 +185,26 @@ int listening(char * addr, uint16_t port, struct ripTable* mainTable){
 				}
 				}else 
 				if(ip.ip_header.ip_tos==3){
+					printf("IP DATAGRAM\n\n");
 					char* stream;
 					stream = (char*)(buf+sizeof(ip));
 					int checksum = ip_sum(stream,(sizeof(struct ip)));
-					if(checksum == ip.ip_header.ip_sum){printf("Checksum match: %d\n",checksum);}else{continue;}
+					if(checksum == ip.ip_header.ip_sum){printf("Checksum match: %d\n",checksum);}else{printf("Checksum Failed\n");continue;}
 
-					// remember to change IP header with new fields - TTL etc
 
 					int ttl = ip.ip_header.ip_ttl;
-					printf("Forwarding packet - TTL = %d\n",ttl);
 					int length = ip.ip_header.ip_len-sizeof(struct ip);
-					struct sendData* buff = malloc(sizeof(int)*2+sizeof(char)*length);
-						buff->flag = ip.ip_header.ip_tos;   // Should be 3
-						buff->size = length;
-						strcpy(buff->buffer, buf+sizeof(ip));
+						
+						struct userCopy* forwardTo = malloc(sizeof(int)*3+sizeof(char*)+sizeof(char)*length+sizeof(struct ripTable*));
+						strcpy(forwardTo->buffer, buf+sizeof(ip));
+						forwardTo->buffer[length]='\0';
+						// printf("BUFFER:%s.\n",forwardTo->buffer);
 
-						struct user* forwardTo = malloc(sizeof(struct user*));
-						forwardTo->ttl = ip.ip_header.ip_ttl;
+						forwardTo->flag = ip.ip_header.ip_tos;   // Should be 3
+						forwardTo->size = length;
+						forwardTo->ttl = ttl;
 						forwardTo->mainTable = mainTable;
 						forwardTo->destVIP =  inet_ntoa(ip.ip_header.ip_dst);
-						forwardTo->buffer = buff;
 
 						pthread_attr_t attr;
 						pthread_attr_init(&attr);
@@ -189,18 +212,11 @@ int listening(char * addr, uint16_t port, struct ripTable* mainTable){
 						pthread_t* forwardThread = (pthread_t *)malloc(sizeof(pthread_t));
 						int rc = 0;
 						//Forward updates
-					if(rc == pthread_create(forwardThread, &attr, sendUserDataCopy, (void*)forwardTo)){
-						printf("thread creation error %d\n", rc);	
+					if(rc = pthread_create(forwardThread, &attr, sendUserDataCopy, (void*)forwardTo)){
+						printf("THREAD creation error %d\n", rc);	
 					}
 				}
 			}
 		}
 		return 0;
-		}
-
-//int main(int argc, char ** argv){
-//	char *listen_on = "127.0.0.1";
-//	uint16_t port = 1700;
-//	struct ripTable* mainTable;
-//	int c = listening(listen_on, port, mainTable);
-//}
+	}

@@ -84,9 +84,10 @@ struct interface* getRouteByDestVIP(char* destVIP, struct ripTable* mainTable){
 		if(!strcmp(destVIP, currEntry -> destVIP)){
 //			nextHop -> nodeAddr = currEntry -> nextHop -> rnAddr;
 //			nextHop -> nodePort = currEntry -> nextHop -> rnPort;
-			printf("Next Hop\n");
+			printf("Next Hop Found\n");
 			return currEntry -> nextHop;
 		}
+		// printf("Entry: --  %s\n\n", currEntry -> destVIP);
 		currEntry = currEntry -> next;
 	}
 	printf("Not Found Next Hop\n");

@@ -28,12 +28,13 @@
 //struct triggered{
 //	struct ripTable* mainTable;
 //};
-//struct user{
-//	struct ripTable* mainTable;
-//	int ttl;
-//	struct sendData* buffer;
-//	char * destVIP;
-//};
+struct user{
+	struct ripTable* mainTable;
+	int ttl;
+	struct sendData* buffer;
+	char * destVIP;
+};
+
 void* triggeredUpdates(void* data){
 	struct ripTable* mainTable = (struct ripTable*)data;
 	while(1){
@@ -101,18 +102,20 @@ void* sendUserData(void* data){
 	char* destVIP = init -> destVIP;
 	struct interface* currInt = init -> mainTable -> intList;
 	struct sendData* info = init -> buffer;
+	int TTL = init->ttl;
+
 	while(currInt != NULL){
 		if(addrToNumber(currInt -> vipSource) == addrToNumber(destVIP)){
-			printf("Sent Data: %s \n", init -> buffer -> buffer);
-			return;
+			printf("\n\nReceived Data: %s\n\n", init -> buffer -> buffer);
+			return data;
 		}
 		currInt = currInt -> next;
 	}	
 	struct interface* route =  getRouteByDestVIP(destVIP,init ->  mainTable);
 	//decrement TTL
 //        send((void*)init -> buffer, init -> mainTable -> mainNode -> nodeAddr, interface -> rnPort, interface -> vipDest, sendData -> flag, sendData -> size, destVIP);
-	sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, info -> flag, info -> size, 15);   
-     printf("sent user data %s \n", init->buffer->buffer);
+	sender((void*)(info -> buffer),route->vipSource, route->rnAddr, route->rnPort, destVIP, info -> flag, info -> size, TTL);
+     printf("sent_datagram: %s \n", init->buffer->buffer);
 }
 
 void* sendDataRequest(void* data){

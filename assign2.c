@@ -89,7 +89,7 @@ int getThirdArg(char* string, char delimiter, char* thirdArg){
 	}
 	
 	strcpy(thirdArg, &string[index]);
-	printf("thirdArg:  %s:%p: \n",thirdArg, thirdArg);
+	printf("thirdArg:%s- length%d: \n",thirdArg, length);
 	return length;
 }
 int main(int argc, char ** argv){
@@ -202,19 +202,19 @@ while(1){
 	if(!strcmp(command, "send")){
 //		printf("origBuffer %s \n", origBuffer);
 		char* ipString = firstArgument;
-		struct sendData* payload = (struct sendData*)(malloc(sizeof(char)*256 + sizeof(int)*2));	
-	//	printf("payolad buffer:%p \n ", payload -> buffer);
+		struct sendData* payload = (struct sendData*)(malloc(sizeof(char)*256 + sizeof(int)*2));			/// CHECK SIZE
+
 		int size = getThirdArg(origBuffer, ' ', payload -> buffer);
-		printf("size: %s \n", payload -> buffer);	
+		printf("buffer-%s, size: %d\n", payload -> buffer, size);	
 	//void* buffer = malloc(sizeof(char) * size+sizeof(int));
 		payload -> size = size;
 		payload -> flag = 3;
 		struct interface* nextHop = getRouteByDestVIP(ipString,mainTable);
-	//	printf("made it past that...");
+
 		struct nodeInfo* nextHopInfo = (struct nodeInfo*)malloc(sizeof(struct nodeInfo));
 		nextHopInfo -> nodeAddr = nextHop -> rnAddr;
 		nextHopInfo -> nodePort = nextHop -> rnPort;
-	//	printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
+		printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
 		pthread_t* userThread = (pthread_t *)malloc(sizeof(pthread_t));
 		struct user* user = (struct user*)malloc(sizeof(struct user));
 		user -> mainTable = mainTable;
