@@ -47,30 +47,35 @@ void printTable(struct ripTable* table){
 	printf("\n");
 	struct ripEntry* entries = table -> ripEntries;
 	struct nodeInfo* mainNode = table -> mainNode;
-	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
+//	printf("Node Addr: %s Node Port: %d \n", mainNode -> nodeAddr, mainNode -> nodePort);
 	struct ripEntry* currEntry = table ->ripEntries;
 	while(currEntry != NULL){
-		printf("Destination: %s  VIP: %s time: %d \n",currEntry -> destVIP, currEntry -> nextHop -> vipDest, currEntry -> updateTime);
-		printf("Cost %d\n", currEntry -> cost + currEntry -> nextHop -> upDown);
+	if(currEntry -> cost <= 16){
+		if(currEntry -> cost >=1)		
+		printf("%s\t%d\t%d\n",currEntry -> destVIP, currEntry -> nextHop -> interId, currEntry -> cost);
 		currEntry = currEntry -> next;
 	}
-	printf("size read: %d \n", getTableLength(table));  
+	else if (currEntry -> cost == 17){
+		printf("%s\t%d\t%d\n",currEntry -> destVIP, currEntry -> nextHop -> interId, 16);
+	}
+	}
+//	printf("size read: %d \n", getTableLength(table));  
 	printf("\n");
 }
-void* reader(void* data){
-	struct returnInfo* allInfo = (struct returnInfo*) data;
-	struct nodeInfo* mainNode = allInfo -> mainNode;
-	struct interface* intList = allInfo -> interfaceList;
-	printf("Read thread run \n");
-	return NULL;
-}
-void* listener(void* data){
-	struct returnInfo* allInfo = (struct returnInfo*) data;
-        struct nodeInfo* mainNode= allInfo -> mainNode;
-        struct interface* intList = allInfo -> interfaceList;
-	printf("Listener thread run \n");
-	return NULL;
-}
+//void* reader(void* data){
+//	struct returnInfo* allInfo = (struct returnInfo*) data;
+//	struct nodeInfo* mainNode = allInfo -> mainNode;
+//	struct interface* intList = allInfo -> interfaceList;
+//	printf("Read thread run \n");
+//	return NULL;
+//}
+//void* listener(void* data){
+//	struct returnInfo* allInfo = (struct returnInfo*) data;
+  //      struct nodeInfo* mainNode= allInfo -> mainNode;
+  //      struct interface* intList = allInfo -> interfaceList;
+//	printf("Listener thread run \n");
+//	return NULL;
+//}
 int getThirdArg(char* string, char delimiter, char* thirdArg){
 	int i = 0;
 	int count = 0;
@@ -87,9 +92,12 @@ int getThirdArg(char* string, char delimiter, char* thirdArg){
 		}
 		i++;
 	}
-	
+	if(length < 16){
+	strcat(thirdArg, "                ");
+	}
+	length = length + 16;
 	strcpy(thirdArg, &string[index]);
-	printf("thirdArg:%s- length%d: \n",thirdArg, length);
+//	printf("thirdArg:  %s:%p: \n",thirdArg, thirdArg);
 	return length;
 }
 int main(int argc, char ** argv){
@@ -155,12 +163,17 @@ while(1){
 	if(!strcmp(origBuffer, "routes\n")){printTable(mainTable);}
 	 if(!strcmp(command,"up")){
 		int i = 0;
+		int dontDoThis = 0;
 		int arg = atoi(firstArgument);
 		struct interface* currInt = returnData -> interfaceList;
 		for(i = 0; i <arg-1; i ++){
-			if(currInt -> next == NULL) printf("Node doesn't exist!");
+			if(currInt -> next == NULL){ printf("Interface %d not found!\n", arg);
+			dontDoThis = 1;
+			break;
+			}
 			currInt = currInt -> next;
 		}
+		if(dontDoThis) continue;
 		currInt -> upDown = 0;
 		 pthread_t* upThread = (pthread_t*) malloc(sizeof(pthread_t));
                          int rc = 0;
@@ -168,16 +181,21 @@ while(1){
                 	printf("thread creation error %d\n", rc);
         	}
 
-		printf("Node %d up!\n", arg);
+		printf("Interface %d up!\n", arg);
 	}
 	if(!strcmp(command,"down")){
 		int i = 0;
+		int dontDoThis = 0;
                 int arg = atoi(firstArgument);
                 struct interface* currInt = returnData -> interfaceList;
 		for(i = 0; i <arg-1; i ++){
-		if(currInt -> next == NULL) printf("Node doesn't exist!");
-                        currInt = currInt -> next;
+		if(currInt -> next == NULL){ printf("Interface %d not found!\n", arg);
+                        dontDoThis = 1;
+			break;
+			}
+			currInt = currInt -> next;
                 }
+		if(dontDoThis) continue;
                 currInt -> upDown = 100;
 		pthread_t* downThread = (pthread_t*) malloc(sizeof(pthread_t));
        			 int rc = 0;
@@ -186,24 +204,25 @@ while(1){
         }
 
 		
-		printf("Node %d down!\n", arg);
+		printf("Interface %d down!\n", arg);
 	}
 	if(!strcmp(command, "send")){
 //		printf("origBuffer %s \n", origBuffer);
 		char* ipString = firstArgument;
-		struct sendData* payload = (struct sendData*)(malloc(sizeof(char)*256 + sizeof(int)*2));			/// CHECK SIZE
-
+		struct sendData* payload = (struct sendData*)(malloc(sizeof(char)*256 + sizeof(int)*2));	
+	//	printf("payolad buffer:%p \n ", payload -> buffer);
 		int size = getThirdArg(origBuffer, ' ', payload -> buffer);
-		printf("buffer-%s, size: %d\n", payload -> buffer, size);	
+//		printf("size: %s \n", payload -> buffer);	
 	//void* buffer = malloc(sizeof(char) * size+sizeof(int));
 		payload -> size = size;
 		payload -> flag = 3;
 		struct interface* nextHop = getRouteByDestVIP(ipString,mainTable);
-
+	//	printf("made it past that...");
+		if(nextHop == NULL) continue;
 		struct nodeInfo* nextHopInfo = (struct nodeInfo*)malloc(sizeof(struct nodeInfo));
 		nextHopInfo -> nodeAddr = nextHop -> rnAddr;
 		nextHopInfo -> nodePort = nextHop -> rnPort;
-		printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
+	//	printf("NEXT HOP: %s:%d", nextHopInfo -> nodeAddr,nextHopInfo -> nodePort);
 		pthread_t* userThread = (pthread_t *)malloc(sizeof(pthread_t));
 		struct user* user = (struct user*)malloc(sizeof(struct user));
 		user -> mainTable = mainTable;
@@ -215,7 +234,7 @@ while(1){
        	         printf("thread creation error%d\n", rc);
 
         }
-	printf("-->\n");
+//	printf("-->\n");
 	}
 }
 }

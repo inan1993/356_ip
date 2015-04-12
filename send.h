@@ -69,8 +69,8 @@ int sender(void* msg, char*source_addVIP, char* dest_addr, uint16_t port, char*d
  //	 printf("Stream %s\n", (char*)stream+sizeof(ip));
 //    printf("sent %s to port %d \n",source_addVIP, port ); 
      if (sendto(sock, (void*)stream , MAX_MSG_LENGTH, 0,0,0) < 0) {
-     	printf("semt \n");
-	perror("Send error:\n");
+//     	printf("semt \n");
+//	perror("Send error:\n");
      	return 1;
      }
  	free(stream);

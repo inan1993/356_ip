@@ -66,7 +66,7 @@ struct returnInfo* parser(int argc, char ** argv){
 		fscanf(fd,"%s", word);
 		if(feof(fd))
 			break;
-		printf("WORD = %s\n",word);
+//		printf("WORD = %s\n",word);
 		if(word[0] == '\n'){
 			printf("new!!");
 		}
@@ -80,7 +80,7 @@ struct returnInfo* parser(int argc, char ** argv){
                                   nodeInformation -> nodeAddr = "127.0.0.1";
                                 }
 
-			printf("nodeaddr %s\n",nodeInformation->nodeAddr);	
+//			printf("nodeaddr %s\n",nodeInformation->nodeAddr);	
 			unsigned long address = inet_addr(word);
 					// printf("addr = %lu", address);
 			int port = atoi(strtok(NULL, ":"));					// NULL ???
@@ -102,7 +102,7 @@ struct returnInfo* parser(int argc, char ** argv){
 				char* wordy = (char*) malloc(sizeof(char) * 100);
 				strcpy(wordy, words);
 				if(!strcmp(wordy, "localhost")){
-					printf("YAY!\n");
+//					printf("YAY!\n");
 					currInt->rnAddr = "127.0.0.1";
 				}
 				else{
@@ -132,12 +132,12 @@ struct returnInfo* parser(int argc, char ** argv){
 		}
 		
 	}	
-	printf("-----END-----\n\n");
+//	printf("-----END-----\n\n");
 	currInt->prev->next = NULL;
 	struct returnInfo* returnValue = (struct returnInfo*) malloc(sizeof(struct returnInfo));
 	returnValue->mainNode = nodeInformation;
 	returnValue -> interfaceList = interfaceList;
-	printParser(nodeInformation,interfaceList);
+//	printParser(nodeInformation,interfaceList);
 	return returnValue;
 }
 

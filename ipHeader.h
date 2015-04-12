@@ -9,7 +9,8 @@
 #include <stdbool.h>
 #include <netinet/ip.h>
 // #include <net/ip.h>
-#include <inttypes.h>				
+#include <inttypes.h>
+#define PACKET_LEN 140					//????
 
 
 typedef struct ip_Packet
@@ -18,6 +19,12 @@ typedef struct ip_Packet
 	// char payload [PACKET_LEN];
 }ip_packet;
 
+
+
+/************************************************************
+ Checksum for Internet Protocol family headers (C Version)
+ From ping examples in W.Richard Stevens "UNIX NETWORK PROGRAMMING" book.
+************************************************************/
 
 int ip_sum(char* packet, int n) {
   uint16_t *p = (uint16_t*)packet;
@@ -42,6 +49,8 @@ int ip_sum(char* packet, int n) {
   return answer;
 }
 
+
+
 ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_payload, int flag, int TTL){
 
 	ip_packet ip;						// creating ip Headers
@@ -60,6 +69,8 @@ ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_pa
 	ip.ip_header.ip_sum		= ip_sum(payload, (sizeof(struct ip)));
 	inet_aton(src, &ip.ip_header.ip_src);
 	inet_aton(dest, &ip.ip_header.ip_dst);
+	
+	// strcpy(ip.payload, payload);
 /*
 	printf("IP headr length\t\t- %i\n", ip.ip_header.ip_hl);
 	printf("IP version\t\t- %i\n", ip.ip_header.ip_v);
@@ -76,3 +87,5 @@ ip_packet ipHeader(char* payload, char* src, char* dest, unsigned int size_of_pa
 	printf("LengthOfPayload = %lu\nPayload = %s\n",size_of_payload, payload);
 	*/return ip;
 }
+
+

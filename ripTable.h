@@ -83,13 +83,13 @@ struct interface* getRouteByDestVIP(char* destVIP, struct ripTable* mainTable){
 		if(!strcmp(destVIP, currEntry -> destVIP)){
 //			nextHop -> nodeAddr = currEntry -> nextHop -> rnAddr;
 //			nextHop -> nodePort = currEntry -> nextHop -> rnPort;
-			printf("Next Hop Found\n");
+		//	printf("Next Hop: %s\n", currEntry -> destVIP);
 			return currEntry -> nextHop;
 		}
-		// printf("Entry: --  %s\n\n", currEntry -> destVIP);
 		currEntry = currEntry -> next;
 	}
-	printf("Not Found Next Hop\n");
+	printf("No path currently found to interface %s. Try again in a few seconds\n", destVIP);
+	return NULL;
 }
 void initializeTable(struct nodeInfo* mainNode, struct interface* intList, struct ripTable* mainTable){
 	struct interface* currInt = intList;
@@ -124,7 +124,7 @@ struct interface* getInterfaceFromNextHopVIP(struct ripTable* mainTable,char* sr
 		}
 		currList = currList -> next;
 	}
-	printf("Interface Not Found!!!!!!! %s\n", srcVIP);
+//	printf("Interface Not Found!!!!!!! %s\n", srcVIP);
 	currList -> next = currList;
 }
 

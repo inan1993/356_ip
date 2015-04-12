@@ -34,7 +34,6 @@ struct user{
 	struct sendData* buffer;
 	char * destVIP;
 };
-
 void* triggeredUpdates(void* data){
 	struct ripTable* mainTable = (struct ripTable*)data;
 	while(1){
@@ -70,7 +69,7 @@ void* sendUpdate(void* data){
 void* listeningThread(void* data){
 	struct ripTable* table = (struct ripTable*)data;
 	listening(table -> mainNode -> nodeAddr, table -> mainNode -> nodePort, table);
-	printf("I'm listening \n");	
+//	printf("I'm listening \n");	
 }
 //could be combined with  triggered updates
 void* checkTimeout(void* data){
@@ -90,7 +89,7 @@ void* checkTimeout(void* data){
 						currEntry -> updateTime ++;
 					}
 					if(currEntry -> updateTime == 12){
-						printf("route down! \n");
+//						printf("route down! \n");
 					}
 				currEntry = currEntry -> next;
 			}
@@ -104,20 +103,18 @@ void* sendUserData(void* data){
 	char* destVIP = init -> destVIP;
 	struct interface* currInt = init -> mainTable -> intList;
 	struct sendData* info = init -> buffer;
-	int TTL = init->ttl;
-
+	int TTL = init -> ttl;
 	while(currInt != NULL){
 		if(addrToNumber(currInt -> vipSource) == addrToNumber(destVIP)){
-			printf("\n\nReceived Data: %s\n\n", init -> buffer -> buffer);
+			printf("%s \n", init -> buffer -> buffer);
 			return data;
 		}
 		currInt = currInt -> next;
 	}	
 	struct interface* route =  getRouteByDestVIP(destVIP,init ->  mainTable);
-	//decrement TTL
-//        send((void*)init -> buffer, init -> mainTable -> mainNode -> nodeAddr, interface -> rnPort, interface -> vipDest, sendData -> flag, sendData -> size, destVIP);
-	sender((void*)(info -> buffer),route->vipSource, route->rnAddr, route->rnPort, destVIP, info -> flag, info -> size, TTL);
-     printf("sent_datagram: %s \n", init->buffer->buffer);
+	if(!route == NULL){
+	 sender((void*)(info -> buffer),route->vipSource, route->rnAddr, route->rnPort, destVIP, info -> flag, info -> size, TTL);
+}
 }
 
 void* sendDataRequest(void* data){
@@ -126,12 +123,12 @@ void* sendDataRequest(void* data){
 	while(currInt != NULL){
                         if(currInt -> upDown == 0){
                                 struct sendData* info = prepareUpdateData(mainTable, currInt, 0);
-				printf("sent data request! \n");
+//				printf("sent data request! \n");
                         	 sender((void*)(info -> buffer),currInt -> vipSource, currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 2, 40, 15);
  
 //			       send((void*)"Request", currInt -> rnAddr, currInt -> rnPort, currInt -> vipDest, 2, 10, currInt -> vipDest);
                                 currInt = currInt -> next;
-				printf("sent data request \n");
+//				printf("sent data request \n");
                         }
 
 }
